@@ -1,0 +1,66 @@
+schema_version: 1
+
+conditions:
+  aa:
+    kind: null_control
+    candidate_ref: main
+    injection: none
+    expected_signal: no_intentional_change
+    supports_known_effect_power_claim: false
+
+  microposts-index-n-plus-one:
+    kind: fixed_injection
+    candidate_ref: regression/microposts-index-n-plus-one
+    injection: remove_index_author_eager_loading
+    expected_signal: sql_count
+    supports_known_effect_power_claim: false
+
+  micropost-show-comment-authors-n-plus-one:
+    kind: fixed_injection
+    candidate_ref: regression/micropost-show-comment-authors-n-plus-one
+    injection: remove_comment_author_eager_loading
+    expected_signal: sql_count
+    supports_known_effect_power_claim: false
+
+  microposts-index-comment-count-query:
+    kind: fixed_injection
+    candidate_ref: regression/microposts-index-comment-count-query
+    injection: replace_counter_cache_with_live_counts
+    expected_signal: sql_count
+    supports_known_effect_power_claim: false
+
+  micropost-search-unindexed-pattern:
+    kind: fixed_injection
+    candidate_ref: regression/micropost-search-unindexed-pattern
+    injection: materialize_all_search_matches_before_pagination
+    expected_signal: allocations
+    supports_known_effect_power_claim: false
+
+  comment-create-recount:
+    kind: fixed_injection
+    candidate_ref: regression/comment-create-recount
+    injection: recount_comments_after_create
+    expected_signal: sql_count
+    supports_known_effect_power_claim: false
+
+  digest-job-n-plus-one:
+    kind: fixed_injection
+    candidate_ref: regression/digest-job-n-plus-one
+    injection: remove_digest_eager_loading_and_counter_cache
+    expected_signal: sql_count
+    supports_known_effect_power_claim: false
+
+  digest-job-allocation-growth:
+    kind: fixed_injection
+    candidate_ref: regression/digest-job-allocation-growth
+    injection: json_roundtrip_and_string_duplication
+    expected_signal: allocations
+    supports_known_effect_power_claim: false
+
+  micropost-show-unbounded-comments:
+    kind: fixed_injection
+    candidate_ref: regression/micropost-show-unbounded-comments
+    injection: remove_comment_pagination
+    expected_signal: allocations
+    supports_known_effect_power_claim: false
+

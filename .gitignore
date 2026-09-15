@@ -1,0 +1,5 @@
+results/
+derived/
+simulation-results/
+tmp/
+.DS_Store

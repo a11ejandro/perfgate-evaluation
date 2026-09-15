@@ -1,0 +1,157 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "English"
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = { results: File.join(PerfgateEvaluation::ROOT, "results") }
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/run_trial --plan PATH --trial ID --arm reference|candidate [options]"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--trial ID") { |value| options[:trial_id] = value }
+  parser.on("--arm ARM") { |value| options[:arm] = value }
+  parser.on("--reference PATH") { |value| options[:reference] = File.expand_path(value) }
+  parser.on("--repository PATH") { |value| options[:repository] = File.expand_path(value) }
+  parser.on("--results PATH") { |value| options[:results] = File.expand_path(value) }
+end.parse!
+
+abort "--plan is required" unless options[:plan]
+abort "--trial is required" unless options[:trial_id]
+abort "--arm must be reference or candidate" unless %w[reference candidate].include?(options[:arm])
+PerfgateEvaluation.validate_identifier!("trial", options[:trial_id])
+if options[:arm] == "candidate" && !options[:reference]
+  abort "candidate capture requires --reference pointing to the exact reference run directory"
+end
+
+plan_digest = PerfgateEvaluation.verify_sidecar!(options.fetch(:plan))
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+unless PerfgateEvaluation.machinery_digest == plan.fetch("evaluation_machinery_digest")
+  abort "evaluation machinery differs from the frozen plan"
+end
+trial = plan.fetch("trials").find { |item| item.fetch("trial_id") == options.fetch(:trial_id) }
+abort "trial not found in plan: #{options[:trial_id]}" unless trial
+repository = options[:repository] || ENV["PERFGATE_SUBJECT_REPOSITORY"]
+abort "subject repository is required through --repository or PERFGATE_SUBJECT_REPOSITORY" unless repository
+declared_environment = ENV["PERFGATE_ENVIRONMENT_CLASS"]
+abort "PERFGATE_ENVIRONMENT_CLASS must equal the frozen plan environment class" unless
+  declared_environment == plan.fetch("environment_class")
+PerfgateEvaluation.ensure_clean_repository!(repository)
+
+expected_revision = trial.fetch("#{options.fetch(:arm)}_revision")
+actual_revision = PerfgateEvaluation.resolve_revision(repository, "HEAD")
+abort "subject revision #{actual_revision} does not match planned #{expected_revision}" unless actual_revision == expected_revision
+actual_perfgate_revision = PerfgateEvaluation.perfgate_revision(repository)
+unless actual_perfgate_revision == plan.fetch("perfgate_revision")
+  abort "Perfgate lock revision #{actual_perfgate_revision} does not match plan"
+end
+resolved_perfgate_path = PerfgateEvaluation.resolved_perfgate_path(repository)
+resolved_runtime_digest = PerfgateEvaluation.runtime_source_digest(resolved_perfgate_path)
+unless resolved_runtime_digest == plan.fetch("perfgate_runtime_source_digest")
+  abort "resolved Perfgate runtime source does not match the frozen pinned implementation"
+end
+
+config_path = File.join(repository, plan.dig("subject", "configuration_path"))
+unless PerfgateEvaluation.sha256_file(config_path) == plan.dig("subject", "configuration_digest")
+  abort "Perfgate configuration digest does not match plan"
+end
+plan.dig("subject", "workload_source_digests").each do |relative, expected|
+  actual = PerfgateEvaluation.sha256_file(File.join(repository, relative))
+  abort "workload source digest mismatch: #{relative}" unless actual == expected
+end
+
+if options[:arm] == "candidate"
+  reference_manifest_path = File.expand_path(File.join(options.fetch(:reference), "..", "..", "trial.json"))
+  abort "reference trial manifest is missing: #{reference_manifest_path}" unless File.file?(reference_manifest_path)
+  reference_manifest = PerfgateEvaluation.read_json(reference_manifest_path)
+  expected_reference = {
+    "study_id" => plan.fetch("study_id"),
+    "stage" => plan.fetch("stage"),
+    "trial_id" => trial.fetch("trial_id"),
+    "arm" => "reference",
+    "plan_digest" => plan_digest,
+    "app_revision" => trial.fetch("reference_revision"),
+    "status" => "completed"
+  }
+  mismatches = expected_reference.reject { |key, value| reference_manifest[key] == value }
+  abort "reference artifact does not belong to this frozen trial: #{mismatches.keys.join(', ')}" unless mismatches.empty?
+end
+
+trial_root = File.join(
+  options.fetch(:results), plan.fetch("study_id"), plan.fetch("stage"),
+  trial.fetch("trial_id"), options.fetch(:arm)
+)
+abort "trial-arm output already exists: #{trial_root}" if File.exist?(trial_root)
+FileUtils.mkdir_p(trial_root)
+
+environment = PerfgateEvaluation.environment_snapshot(repository)
+environment["declared_class"] = plan.fetch("environment_class")
+manifest = {
+  "schema_version" => 1,
+  "study_id" => plan.fetch("study_id"),
+  "stage" => plan.fetch("stage"),
+  "trial_id" => trial.fetch("trial_id"),
+  "condition" => trial.fetch("condition"),
+  "condition_kind" => trial.fetch("condition_kind"),
+  "schedule_index" => trial.fetch("schedule_index"),
+  "repetition" => trial.fetch("repetition"),
+  "reversal_pair" => trial.fetch("reversal_pair"),
+  "arm" => options.fetch(:arm),
+  "injection" => trial.fetch("injection"),
+  "expected_signal" => trial.fetch("expected_signal"),
+  "plan_path" => options.fetch(:plan),
+  "plan_digest" => plan_digest,
+  "app_revision" => actual_revision,
+  "app_branch" => PerfgateEvaluation.git(repository, "branch", "--show-current"),
+  "source_dirty" => false,
+  "perfgate_revision" => actual_perfgate_revision,
+  "resolved_perfgate_path" => resolved_perfgate_path,
+  "perfgate_runtime_source_digest" => resolved_runtime_digest,
+  "configuration_digest" => PerfgateEvaluation.sha256_file(config_path),
+  "environment" => environment,
+  "reference_run_directory" => options[:reference],
+  "started_at" => Time.now.utc.iso8601,
+  "status" => "running",
+  "evidence_result" => nil,
+  "policy_result" => nil
+}
+manifest_path = File.join(trial_root, "trial.json")
+PerfgateEvaluation.write_json(manifest_path, manifest)
+
+command = [
+  PerfgateEvaluation.rbenv_path, "exec", "bundle", "exec", "perfgate", "run",
+  "--config", config_path, "--output", trial_root, "--format", "markdown"
+]
+command.concat(["--compare", options.fetch(:reference)]) if options[:arm] == "candidate"
+
+started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+system(*command, chdir: repository)
+exit_status = $CHILD_STATUS.exitstatus
+elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+
+run_paths = Dir.glob(File.join(trial_root, "runs", "*", "run.json"))
+comparison_paths = Dir.glob(File.join(trial_root, "comparisons", "*.json"))
+comparison = comparison_paths.one? ? PerfgateEvaluation.read_json(comparison_paths.first) : nil
+manifest["completed_at"] = Time.now.utc.iso8601
+manifest["elapsed_seconds"] = elapsed.round(6)
+manifest["perfgate_exit_code"] = exit_status
+manifest["run_result"] = run_paths.one? ? File.dirname(run_paths.first) : nil
+manifest["comparison_result"] = comparison_paths.one? ? comparison_paths.first : nil
+manifest["evidence_result"] = comparison && comparison["decision"]
+manifest["policy_result"] = PerfgateEvaluation.policy_result(File.join(trial_root, "summary.md"))
+manifest["status"] = exit_status.zero? ? "completed" : "perfgate_nonzero_exit"
+PerfgateEvaluation.write_json(manifest_path, manifest)
+
+validator = File.join(PerfgateEvaluation::ROOT, "bin", "validate_bundle")
+validation_ok = system(
+  validator, "--repository", repository, "--root", trial_root
+)
+unless validation_ok
+  manifest["status"] = "artifact_invalid"
+  PerfgateEvaluation.write_json(manifest_path, manifest)
+  abort "trial artifact validation failed"
+end
+
+puts "trial arm captured: #{trial_root}"
+puts "evidence=#{manifest['evidence_result'] || 'not_applicable'} policy=#{manifest['policy_result'] || 'not_applicable'}"
+exit exit_status

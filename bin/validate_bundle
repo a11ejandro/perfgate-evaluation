@@ -1,0 +1,91 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = {}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/validate_bundle --repository PATH --root RUN_OR_OUTPUT_DIRECTORY"
+  parser.on("--repository PATH") { |value| options[:repository] = File.expand_path(value) }
+  parser.on("--root PATH") { |value| options[:root] = File.expand_path(value) }
+  parser.on("--bundled") { options[:bundled] = true }
+end.parse!
+
+abort "--repository is required" unless options[:repository]
+abort "--root is required" unless options[:root]
+
+unless options[:bundled]
+  command = [
+    PerfgateEvaluation.rbenv_path, "exec", "bundle", "exec", "ruby", File.expand_path(__FILE__),
+    "--bundled", "--repository", options[:repository], "--root", options[:root]
+  ]
+  Dir.chdir(options[:repository]) { exec(*command) }
+end
+
+require "bundler/setup"
+require "json_schemer"
+
+root = options.fetch(:root)
+trial_manifest_path = File.join(root, "trial.json")
+if File.file?(trial_manifest_path)
+  trial_schema = JSONSchemer.schema(
+    PerfgateEvaluation.read_json(File.join(PerfgateEvaluation::ROOT, "schemas", "trial-manifest-v1.schema.json"))
+  )
+  trial_errors = trial_schema.validate(PerfgateEvaluation.read_json(trial_manifest_path)).to_a
+  unless trial_errors.empty?
+    trial_errors.each { |error| warn JSON.generate(error) }
+    abort "trial manifest schema validation failed with #{trial_errors.length} error(s)"
+  end
+end
+
+run_directory = if File.file?(File.join(root, "run.json"))
+                  root
+                else
+                  runs = Dir.glob(File.join(root, "runs", "*"))
+                  abort "expected exactly one run under #{root}, found #{runs.length}" unless runs.one?
+                  runs.first
+                end
+
+run_path = File.join(run_directory, "run.json")
+checksums_path = File.join(run_directory, "checksums.json")
+abort "missing #{run_path}" unless File.file?(run_path)
+abort "missing #{checksums_path}" unless File.file?(checksums_path)
+
+run = PerfgateEvaluation.read_json(run_path)
+checksums = PerfgateEvaluation.read_json(checksums_path)
+expected = checksums.fetch("run.json")
+actual = PerfgateEvaluation.sha256_file(run_path)
+abort "checksum mismatch for #{run_path}" unless expected == actual
+
+gem_root = Gem.loaded_specs.fetch("perfgate").full_gem_path
+run_schema = JSONSchemer.schema(
+  PerfgateEvaluation.read_json(File.join(gem_root, "schemas", "run-result-v2.schema.json"))
+)
+run_errors = run_schema.validate(run).to_a
+unless run_errors.empty?
+  run_errors.each { |error| warn JSON.generate(error) }
+  abort "run-result v2 schema validation failed with #{run_errors.length} error(s)"
+end
+
+incomplete = run.fetch("workloads").reject { |workload| workload["status"] == "completed" }
+abort "#{incomplete.length} workload(s) did not complete" unless incomplete.empty?
+
+comparison_schema = JSONSchemer.schema(
+  PerfgateEvaluation.read_json(File.join(gem_root, "schemas", "comparison-result-v2.schema.json"))
+)
+Dir.glob(File.join(root, "comparisons", "*.json")).sort.each do |comparison_path|
+  comparison = PerfgateEvaluation.read_json(comparison_path)
+  errors = comparison_schema.validate(comparison).to_a
+  unless errors.empty?
+    errors.each { |error| warn JSON.generate(error) }
+    abort "comparison-result v2 schema validation failed for #{comparison_path}"
+  end
+
+  digest_path = "#{comparison_path}.sha256"
+  abort "missing #{digest_path}" unless File.file?(digest_path)
+  abort "checksum mismatch for #{comparison_path}" unless File.read(digest_path).strip ==
+                                                       PerfgateEvaluation.sha256_file(comparison_path)
+end
+
+puts "valid Perfgate schema-v2 bundle: #{run_directory}"

@@ -1,0 +1,175 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = {
+  results: File.join(PerfgateEvaluation::ROOT, "results")
+}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/collect_results --plan PATH --output DIRECTORY [options]"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--results PATH") { |value| options[:results] = File.expand_path(value) }
+  parser.on("--output PATH") { |value| options[:output] = File.expand_path(value) }
+end.parse!
+
+abort "--plan is required" unless options[:plan]
+abort "--output is required" unless options[:output]
+abort "refusing to overwrite nonempty output: #{options[:output]}" if
+  File.directory?(options[:output]) && !Dir.empty?(options[:output])
+
+plan_digest = PerfgateEvaluation.verify_sidecar!(options.fetch(:plan))
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+unless PerfgateEvaluation.machinery_digest == plan.fetch("evaluation_machinery_digest")
+  abort "collection machinery differs from the frozen plan"
+end
+root = File.join(options.fetch(:results), plan.fetch("study_id"), plan.fetch("stage"))
+FileUtils.mkdir_p(options.fetch(:output))
+
+trial_headers = %w[
+  study_id stage schedule_index trial_id condition condition_kind repetition
+  reversal_pair collection_status evidence_result policy_result reference_status
+  candidate_status reference_revision candidate_revision reference_started_at
+  candidate_started_at calendar_day reference_worker_instance
+  candidate_worker_instance reference_runner_image candidate_runner_image ruby
+  reference_elapsed_seconds candidate_elapsed_seconds comparison_elapsed_seconds
+  comparison_path
+]
+metric_headers = %w[
+  study_id stage trial_id condition condition_kind repetition reversal_pair
+  evidence_result workload metric metric_decision unit baseline_sample_size
+  candidate_sample_size baseline_median candidate_median absolute_change
+  change_percent interval_confidence interval_absolute_lower interval_absolute_upper
+  interval_percent_lower interval_percent_upper warning_percent failure_percent
+  warning_absolute minimum_absolute rule
+]
+
+trial_rows = []
+metric_rows = []
+audit = {
+  "schema_version" => 1,
+  "study_id" => plan.fetch("study_id"),
+  "stage" => plan.fetch("stage"),
+  "plan_digest" => plan_digest,
+  "evaluation_machinery_digest" => PerfgateEvaluation.machinery_digest,
+  "collected_at" => Time.now.utc.iso8601,
+  "planned_comparisons" => plan.fetch("trials").length,
+  "issues" => []
+}
+
+plan.fetch("trials").each_with_index do |trial, schedule_index|
+  base = File.join(root, trial.fetch("trial_id"))
+  reference_path = File.join(base, "reference", "trial.json")
+  candidate_path = File.join(base, "candidate", "trial.json")
+  reference = File.file?(reference_path) ? PerfgateEvaluation.read_json(reference_path) : nil
+  candidate = File.file?(candidate_path) ? PerfgateEvaluation.read_json(candidate_path) : nil
+
+  status = if reference.nil? && candidate.nil?
+             "missing_both_arms"
+           elsif reference.nil?
+             "missing_reference"
+           elsif candidate.nil?
+             "missing_candidate"
+           elsif reference["status"] != "completed"
+             "reference_#{reference['status']}"
+           elsif candidate["status"] != "completed"
+             "candidate_#{candidate['status']}"
+           elsif !PerfgateEvaluation::OUTCOMES.include?(candidate["evidence_result"])
+             "missing_evidence_result"
+           else
+             "complete"
+           end
+
+  audit["issues"] << { "trial_id" => trial.fetch("trial_id"), "status" => status } unless status == "complete"
+  candidate_environment = candidate&.fetch("environment", {}) || {}
+  reference_environment = reference&.fetch("environment", {}) || {}
+  reference_elapsed = reference && reference["elapsed_seconds"]
+  candidate_elapsed = candidate && candidate["elapsed_seconds"]
+  comparison_elapsed = if reference_elapsed && candidate_elapsed
+                         reference_elapsed.to_f + candidate_elapsed.to_f
+                       end
+  calendar_day = candidate&.dig("started_at")&.slice(0, 10)
+
+  comparison_path = candidate && candidate["comparison_result"]
+  trial_rows << {
+    "study_id" => plan.fetch("study_id"),
+    "stage" => plan.fetch("stage"),
+    "schedule_index" => schedule_index + 1,
+    "trial_id" => trial.fetch("trial_id"),
+    "condition" => trial.fetch("condition"),
+    "condition_kind" => trial.fetch("condition_kind"),
+    "repetition" => trial.fetch("repetition"),
+    "reversal_pair" => trial.fetch("reversal_pair"),
+    "collection_status" => status,
+    "evidence_result" => candidate && candidate["evidence_result"],
+    "policy_result" => candidate && candidate["policy_result"],
+    "reference_status" => reference && reference["status"],
+    "candidate_status" => candidate && candidate["status"],
+    "reference_revision" => trial.fetch("reference_revision"),
+    "candidate_revision" => trial.fetch("candidate_revision"),
+    "reference_started_at" => reference && reference["started_at"],
+    "candidate_started_at" => candidate && candidate["started_at"],
+    "calendar_day" => calendar_day,
+    "reference_worker_instance" => reference_environment["worker_instance"],
+    "candidate_worker_instance" => candidate_environment["worker_instance"],
+    "reference_runner_image" => reference_environment["runner_image"],
+    "candidate_runner_image" => candidate_environment["runner_image"],
+    "ruby" => candidate_environment["ruby"] || reference_environment["ruby"],
+    "reference_elapsed_seconds" => reference_elapsed,
+    "candidate_elapsed_seconds" => candidate_elapsed,
+    "comparison_elapsed_seconds" => comparison_elapsed,
+    "comparison_path" => comparison_path
+  }
+
+  next unless status == "complete" && comparison_path && File.file?(comparison_path)
+
+  comparison = PerfgateEvaluation.read_json(comparison_path)
+  comparison.fetch("workloads").each do |workload|
+    workload.fetch("metrics").each do |metric_name, metric|
+      metric_rows << {
+        "study_id" => plan.fetch("study_id"),
+        "stage" => plan.fetch("stage"),
+        "trial_id" => trial.fetch("trial_id"),
+        "condition" => trial.fetch("condition"),
+        "condition_kind" => trial.fetch("condition_kind"),
+        "repetition" => trial.fetch("repetition"),
+        "reversal_pair" => trial.fetch("reversal_pair"),
+        "evidence_result" => comparison.fetch("decision"),
+        "workload" => workload.fetch("id"),
+        "metric" => metric_name,
+        "metric_decision" => metric["decision"],
+        "unit" => metric["unit"],
+        "baseline_sample_size" => metric["baseline_sample_size"],
+        "candidate_sample_size" => metric["candidate_sample_size"],
+        "baseline_median" => metric["baseline_median"],
+        "candidate_median" => metric["candidate_median"],
+        "absolute_change" => metric["absolute_change"],
+        "change_percent" => metric["change_percent"],
+        "interval_confidence" => metric.dig("interval", "confidence_level"),
+        "interval_absolute_lower" => metric.dig("interval", "absolute", "lower"),
+        "interval_absolute_upper" => metric.dig("interval", "absolute", "upper"),
+        "interval_percent_lower" => metric.dig("interval", "percent", "lower"),
+        "interval_percent_upper" => metric.dig("interval", "percent", "upper"),
+        "warning_percent" => metric.dig("thresholds", "warning_percent"),
+        "failure_percent" => metric.dig("thresholds", "failure_percent"),
+        "warning_absolute" => metric.dig("thresholds", "warning_absolute"),
+        "minimum_absolute" => metric.dig("thresholds", "minimum_absolute"),
+        "rule" => metric["rule"]
+      }
+    end
+  end
+end
+
+CSV.open(File.join(options.fetch(:output), "trials.csv"), "w", write_headers: true, headers: trial_headers) do |csv|
+  trial_rows.each { |row| csv << trial_headers.map { |header| row[header] } }
+end
+CSV.open(File.join(options.fetch(:output), "metrics.csv"), "w", write_headers: true, headers: metric_headers) do |csv|
+  metric_rows.each { |row| csv << metric_headers.map { |header| row[header] } }
+end
+audit["complete_comparisons"] = trial_rows.count { |row| row["collection_status"] == "complete" }
+audit["metric_rows"] = metric_rows.length
+PerfgateEvaluation.write_json(File.join(options.fetch(:output), "collection-audit.json"), audit)
+
+puts "collected #{audit['complete_comparisons']}/#{audit['planned_comparisons']} comparisons"
+puts "audit: #{File.join(options.fetch(:output), 'collection-audit.json')}"

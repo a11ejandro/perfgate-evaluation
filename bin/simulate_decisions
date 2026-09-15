@@ -1,0 +1,198 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = {
+  config: File.join(PerfgateEvaluation::ROOT, "config", "simulations.yml"),
+  study_config: File.join(PerfgateEvaluation::ROOT, "config", "study.yml")
+}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/simulate_decisions --stage calibration|held_out --output DIRECTORY [options]"
+  parser.on("--stage STAGE") { |value| options[:stage] = value }
+  parser.on("--output PATH") { |value| options[:output] = File.expand_path(value) }
+  parser.on("--config PATH") { |value| options[:config] = File.expand_path(value) }
+  parser.on("--study-config PATH") { |value| options[:study_config] = File.expand_path(value) }
+  parser.on("--replicates N", Integer) { |value| options[:replicates] = value }
+  parser.on("--bundled") { options[:bundled] = true }
+end.parse!
+
+abort "--stage must be calibration or held_out" unless %w[calibration held_out].include?(options[:stage])
+abort "--output is required" unless options[:output]
+
+study = PerfgateEvaluation.read_yaml(options.fetch(:study_config)).fetch("study")
+repository = File.expand_path(study.fetch("subject_repository"), PerfgateEvaluation::ROOT)
+
+unless options[:bundled]
+  arguments = [
+    PerfgateEvaluation.rbenv_path, "exec", "bundle", "exec", "ruby", File.expand_path(__FILE__),
+    "--bundled", "--stage", options.fetch(:stage), "--output", options.fetch(:output),
+    "--config", options.fetch(:config), "--study-config", options.fetch(:study_config)
+  ]
+  arguments.concat(["--replicates", options[:replicates].to_s]) if options[:replicates]
+  Dir.chdir(repository) { exec(*arguments) }
+end
+
+require "bundler/setup"
+require "perfgate/comparison/statistical_metric_decision"
+
+class SimulationComparisonConfig
+  attr_reader :comparison_confidence_level
+
+  def initialize(confidence_level, metric, scenario)
+    @comparison_confidence_level = confidence_level
+    @configuration = {
+      comparison: {
+        practical_thresholds: {
+          metric.to_sym => {
+            warning_percent: scenario.fetch("warning_percent"),
+            failure_percent: scenario.fetch("failure_percent"),
+            minimum_absolute: scenario.fetch("minimum_absolute")
+          }
+        }
+      }
+    }
+  end
+
+  def dig(*keys)
+    @configuration.dig(*keys)
+  end
+
+  def comparison_noise_ratio_threshold
+    0.5
+  end
+end
+
+def standard_normal(rng)
+  u1 = [rng.rand, Float::MIN].max
+  u2 = rng.rand
+  Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math::PI * u2)
+end
+
+def lognormal_samples(rng, count, median, coefficient_of_variation)
+  sigma = Math.sqrt(Math.log((coefficient_of_variation**2) + 1.0))
+  mu = Math.log(median)
+  Array.new(count) { Math.exp(mu + (sigma * standard_normal(rng))) }
+end
+
+configuration = PerfgateEvaluation.read_yaml(options.fetch(:config))
+replicates = options[:replicates] || configuration.fetch("#{options.fetch(:stage)}_replicates")
+abort "#{options[:stage]} replicate count is unresolved" unless replicates
+abort "replicates must be positive" unless Integer(replicates).positive?
+abort "refusing to overwrite nonempty output: #{options[:output]}" if
+  File.directory?(options[:output]) && !Dir.empty?(options[:output])
+
+expected_revision = PerfgateEvaluation.perfgate_revision(repository)
+resolved_path = Gem.loaded_specs.fetch("perfgate").full_gem_path
+perfgate_repository = File.expand_path(study.fetch("perfgate_repository"), PerfgateEvaluation::ROOT)
+expected_runtime_digest = PerfgateEvaluation.git_runtime_source_digest(perfgate_repository, expected_revision)
+actual_runtime_digest = PerfgateEvaluation.runtime_source_digest(resolved_path)
+abort "resolved Perfgate runtime differs from the pinned revision" unless actual_runtime_digest == expected_runtime_digest
+
+FileUtils.mkdir_p(options.fetch(:output))
+raw_path = File.join(options.fetch(:output), "replicates.jsonl")
+summary_groups = Hash.new { |hash, key| hash[key] = [] }
+master_seed = Integer(configuration.fetch("seed"))
+sample_size = Integer(configuration.fetch("sample_size"))
+family_size = Integer(configuration.fetch("family_size"))
+confidence_level = Float(configuration.fetch("confidence_level"))
+
+File.open(raw_path, "w") do |raw|
+  configuration.fetch("scenarios").each_with_index do |(scenario_name, scenario), scenario_index|
+    abort "unsupported simulation distribution" unless scenario.fetch("distribution") == "lognormal"
+    metric = scenario.fetch("metric")
+    baseline_median = Float(scenario.fetch("baseline_median"))
+    cv = Float(scenario.fetch("coefficient_of_variation"))
+    decision_config = SimulationComparisonConfig.new(confidence_level, metric, scenario)
+
+    scenario.fetch("effect_percent").each_with_index do |effect_percent, effect_index|
+      true_percent = Float(effect_percent)
+      candidate_median = baseline_median * (1.0 + (true_percent / 100.0))
+      true_absolute = candidate_median - baseline_median
+
+      Integer(replicates).times do |replicate|
+        seed = master_seed + (scenario_index * 10_000_000) + (effect_index * 100_000) + replicate
+        rng = Random.new(seed)
+        baseline = lognormal_samples(rng, sample_size, baseline_median, cv)
+        candidate = lognormal_samples(rng, sample_size, candidate_median, cv)
+        result = Perfgate::Comparison::StatisticalMetricDecision.call(
+          metric.to_sym, baseline, candidate, decision_config, family_size: family_size
+        )
+        interval = result.fetch("interval")
+        covered_absolute = interval.dig("absolute", "lower") <= true_absolute &&
+                           interval.dig("absolute", "upper") >= true_absolute
+        covered_percent = interval.dig("percent", "lower") <= true_percent &&
+                          interval.dig("percent", "upper") >= true_percent
+        record = {
+          "scenario" => scenario_name,
+          "metric" => metric,
+          "effect_percent" => true_percent,
+          "true_absolute_change" => true_absolute,
+          "replicate" => replicate + 1,
+          "seed" => seed,
+          "sample_size" => sample_size,
+          "family_size" => family_size,
+          "decision" => result.fetch("decision"),
+          "covered_absolute" => covered_absolute,
+          "covered_percent" => covered_percent,
+          "observed_change_percent" => result.fetch("change_percent"),
+          "interval" => interval,
+          "rule" => result.fetch("rule")
+        }
+        raw.puts(JSON.generate(record))
+        summary_groups[[scenario_name, true_percent]] << record
+      end
+    end
+  end
+end
+
+groups = summary_groups.map do |(scenario, effect), records|
+  decisions = PerfgateEvaluation::OUTCOMES.to_h do |outcome|
+    count = records.count { |record| record.fetch("decision") == outcome }
+    lower, upper = PerfgateEvaluation.wilson_interval(count, records.length, confidence_level)
+    [outcome, { "count" => count, "proportion" => count.to_f / records.length, "lower" => lower, "upper" => upper }]
+  end
+  absolute_count = records.count { |record| record.fetch("covered_absolute") }
+  percent_count = records.count { |record| record.fetch("covered_percent") }
+  absolute_lower, absolute_upper = PerfgateEvaluation.wilson_interval(absolute_count, records.length, confidence_level)
+  percent_lower, percent_upper = PerfgateEvaluation.wilson_interval(percent_count, records.length, confidence_level)
+  {
+    "scenario" => scenario,
+    "effect_percent" => effect,
+    "replicates" => records.length,
+    "decisions" => decisions,
+    "absolute_interval_coverage" => {
+      "count" => absolute_count,
+      "proportion" => absolute_count.to_f / records.length,
+      "lower" => absolute_lower,
+      "upper" => absolute_upper
+    },
+    "percent_interval_coverage" => {
+      "count" => percent_count,
+      "proportion" => percent_count.to_f / records.length,
+      "lower" => percent_lower,
+      "upper" => percent_upper
+    }
+  }
+end
+
+summary = {
+  "schema_version" => 1,
+  "stage" => options.fetch(:stage),
+  "generated_at" => Time.now.utc.iso8601,
+  "simulation_configuration_digest" => PerfgateEvaluation.sha256_file(options.fetch(:config)),
+  "perfgate_revision" => expected_revision,
+  "perfgate_runtime_source_digest" => actual_runtime_digest,
+  "replicates_per_scenario_effect" => Integer(replicates),
+  "interpretation" => "Known-effect simulation of the pinned decision procedure; not application, host, causal, or operational validation.",
+  "groups" => groups
+}
+PerfgateEvaluation.write_json(File.join(options.fetch(:output), "summary.json"), summary)
+File.write(File.join(options.fetch(:output), "checksums.sha256"), [
+  "#{PerfgateEvaluation.sha256_file(raw_path)}  replicates.jsonl",
+  "#{PerfgateEvaluation.sha256_file(File.join(options.fetch(:output), 'summary.json'))}  summary.json"
+].join("\n") + "\n")
+
+puts "simulation wrote #{summary_groups.values.sum(&:length)} retained replicates"
+puts "summary: #{File.join(options.fetch(:output), 'summary.json')}"

@@ -1,0 +1,145 @@
+name: Perfgate evaluation arm
+
+on:
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: Committed plan path, including .json
+        required: true
+        default: plans/micropost-calibration-v1.json
+      trial:
+        description: Trial identifier in the frozen plan
+        required: true
+      arm:
+        description: Capture reference first, candidate second
+        required: true
+        type: choice
+        options: [reference, candidate]
+      reference_run_id:
+        description: Workflow run ID of this trial's reference artifact
+        required: false
+      subject_repository:
+        description: GitHub owner/repository for the subject
+        required: true
+        default: a11ejandro/baseline-micropost
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  RAILS_ENV: test
+  DB_HOST: 127.0.0.1
+  DB_PORT: "5432"
+  DB_USERNAME: baseline
+  DB_PASSWORD: baseline
+  PGGSSENCMODE: disable
+  PERFGATE_ENVIRONMENT_CLASS: ubuntu-24.04-postgresql-17-ruby-3.3.4
+  PERFGATE_RUNNER_IMAGE: ubuntu-24.04
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: baseline
+          POSTGRES_PASSWORD: baseline
+          POSTGRES_DB: baseline_micropost_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U baseline -d baseline_micropost_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Check out evaluation package
+        uses: actions/checkout@v4
+        with:
+          path: evaluation
+
+      - name: Resolve frozen arm revision
+        id: plan
+        env:
+          INPUT_PLAN: ${{ inputs.plan }}
+          INPUT_TRIAL: ${{ inputs.trial }}
+          INPUT_ARM: ${{ inputs.arm }}
+        run: |
+          revision="$(ruby -rjson -e '
+            plan = JSON.parse(File.read(ARGV.fetch(0)))
+            trial = plan.fetch("trials").find { |item| item.fetch("trial_id") == ARGV.fetch(1) }
+            abort "trial not found" unless trial
+            puts trial.fetch("#{ARGV.fetch(2)}_revision")
+          ' "evaluation/$INPUT_PLAN" "$INPUT_TRIAL" "$INPUT_ARM")"
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Check out exact subject revision
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.subject_repository }}
+          ref: ${{ steps.plan.outputs.revision }}
+          path: subject
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.4"
+          bundler-cache: true
+          working-directory: subject
+
+      - name: Prepare database
+        working-directory: subject
+        run: bundle exec rails db:prepare
+
+      - name: Download exact reference artifact
+        if: inputs.arm == 'candidate'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_REFERENCE_RUN_ID: ${{ inputs.reference_run_id }}
+          INPUT_TRIAL: ${{ inputs.trial }}
+        run: |
+          if [ -z "$INPUT_REFERENCE_RUN_ID" ]; then
+            echo "candidate arm requires reference_run_id" >&2
+            exit 64
+          fi
+          mkdir -p reference-artifact
+          gh run download "$INPUT_REFERENCE_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "perfgate-evaluation-$INPUT_TRIAL-reference" \
+            --dir reference-artifact
+          reference_run="$(find reference-artifact -path '*/runs/*/run.json' -print -quit)"
+          if [ -z "$reference_run" ]; then
+            echo "reference artifact contains no run.json" >&2
+            exit 65
+          fi
+          echo "PERFGATE_REFERENCE=$(dirname "$reference_run")" >> "$GITHUB_ENV"
+
+      - name: Capture frozen trial arm
+        env:
+          INPUT_PLAN: ${{ inputs.plan }}
+          INPUT_TRIAL: ${{ inputs.trial }}
+          INPUT_ARM: ${{ inputs.arm }}
+          PERFGATE_WORKER_INSTANCE: gha-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          arguments=(
+            --plan "evaluation/$INPUT_PLAN"
+            --trial "$INPUT_TRIAL"
+            --arm "$INPUT_ARM"
+            --repository "$GITHUB_WORKSPACE/subject"
+            --results "$GITHUB_WORKSPACE/results"
+          )
+          if [ "$INPUT_ARM" = candidate ]; then
+            arguments+=(--reference "$PERFGATE_REFERENCE")
+          fi
+          evaluation/bin/run_trial "${arguments[@]}"
+
+      - name: Upload arm artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perfgate-evaluation-${{ inputs.trial }}-${{ inputs.arm }}
+          path: results
+          include-hidden-files: true
+          retention-days: 90

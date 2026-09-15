@@ -1,0 +1,180 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = {}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/analyze_results --plan PATH --input DIRECTORY --output DIRECTORY"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--input PATH") { |value| options[:input] = File.expand_path(value) }
+  parser.on("--output PATH") { |value| options[:output] = File.expand_path(value) }
+end.parse!
+
+%i[plan input output].each { |key| abort "--#{key} is required" unless options[key] }
+abort "refusing to overwrite nonempty output: #{options[:output]}" if
+  File.directory?(options[:output]) && !Dir.empty?(options[:output])
+
+plan_digest = PerfgateEvaluation.verify_sidecar!(options.fetch(:plan))
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+unless PerfgateEvaluation.machinery_digest == plan.fetch("evaluation_machinery_digest")
+  abort "analysis machinery differs from the frozen plan"
+end
+trials = CSV.read(File.join(options.fetch(:input), "trials.csv"), headers: true).map(&:to_h)
+metrics = CSV.read(File.join(options.fetch(:input), "metrics.csv"), headers: true).map(&:to_h)
+audit = PerfgateEvaluation.read_json(File.join(options.fetch(:input), "collection-audit.json"))
+unless audit.fetch("plan_digest") == plan_digest
+  abort "collection audit was produced from another plan"
+end
+
+confidence_level = Float(plan.dig("analysis", "confidence_level"))
+complete = trials.select { |row| row["collection_status"] == "complete" }
+aa = complete.select { |row| row["condition_kind"] == "null_control" }
+
+rate = lambda do |rows, outcome|
+  count = rows.count { |row| row["evidence_result"] == outcome }
+  lower, upper = PerfgateEvaluation.wilson_interval(count, rows.length, confidence_level)
+  {
+    "outcome" => outcome,
+    "count" => count,
+    "denominator" => rows.length,
+    "proportion" => rows.empty? ? nil : count.to_f / rows.length,
+    "interval_method" => "wilson",
+    "confidence_level" => confidence_level,
+    "lower" => lower,
+    "upper" => upper
+  }
+end
+
+outcome_distributions = complete.group_by { |row| row["condition"] }.transform_values do |rows|
+  PerfgateEvaluation::OUTCOMES.to_h { |outcome| [outcome, rate.call(rows, outcome)] }
+end
+
+reversal_groups = complete.group_by { |row| [row["condition"], row["reversal_pair"]] }
+valid_pairs = reversal_groups.values.select { |rows| rows.length == 2 }
+reversals = valid_pairs.count { |rows| rows.map { |row| row["evidence_result"] }.uniq.length > 1 }
+reversal_lower, reversal_upper = PerfgateEvaluation.wilson_interval(reversals, valid_pairs.length, confidence_level)
+
+comparison_times = complete.map do |row|
+  Float(row["comparison_elapsed_seconds"]) unless row["comparison_elapsed_seconds"].to_s.empty?
+end.compact
+days = complete.map { |row| row["calendar_day"] }.compact.reject(&:empty?).uniq
+workers = complete.flat_map do |row|
+  [row["reference_worker_instance"], row["candidate_worker_instance"]]
+end.compact.reject(&:empty?).uniq
+
+summary = {
+  "schema_version" => 1,
+  "study_id" => plan.fetch("study_id"),
+  "stage" => plan.fetch("stage"),
+  "plan_digest" => plan_digest,
+  "evaluation_machinery_digest" => PerfgateEvaluation.machinery_digest,
+  "generated_at" => Time.now.utc.iso8601,
+  "status" => plan.fetch("stage") == "calibration" ? "descriptive_calibration" : "held_out_analysis",
+  "planned_comparisons" => trials.length,
+  "complete_comparisons" => complete.length,
+  "collection_issues" => audit.fetch("issues"),
+  "aa" => {
+    "comparisons" => aa.length,
+    "false_fail" => rate.call(aa, "fail"),
+    "warn" => rate.call(aa, "warn"),
+    "inconclusive" => rate.call(aa, "inconclusive"),
+    "incomparable" => rate.call(aa, "incomparable"),
+    "outcome_distribution" => PerfgateEvaluation::OUTCOMES.to_h { |outcome| [outcome, rate.call(aa, outcome)] }
+  },
+  "condition_outcome_distributions" => outcome_distributions,
+  "rerun_reversal" => {
+    "definition" => "different evidence result within preassigned consecutive disjoint pair",
+    "reversals" => reversals,
+    "valid_pairs" => valid_pairs.length,
+    "incomplete_pairs" => reversal_groups.length - valid_pairs.length,
+    "proportion" => valid_pairs.empty? ? nil : reversals.to_f / valid_pairs.length,
+    "lower" => reversal_lower,
+    "upper" => reversal_upper
+  },
+  "environment" => {
+    "distinct_calendar_days" => days.length,
+    "calendar_days" => days.sort,
+    "distinct_worker_instances" => workers.length,
+    "worker_instances" => workers.sort,
+    "minimum_days_met" => days.length >= plan.dig("stage_configuration", "minimum_distinct_days").to_i,
+    "minimum_workers_met" => workers.length >= plan.dig("stage_configuration", "minimum_worker_instances").to_i
+  },
+  "runtime" => {
+    "complete_comparisons_with_timing" => comparison_times.length,
+    "median_comparison_seconds" => PerfgateEvaluation.median(comparison_times),
+    "total_comparison_seconds" => comparison_times.sum
+  },
+  "metric_rows" => metrics.length,
+  "interpretation_limits" => [
+    "Fixed application injections have unknown true effects; detection proportions are not formal power.",
+    "Per-comparison bootstrap interval coverage requires known-effect simulation.",
+    "Calibration estimates are not held-out validation and do not justify direct merge blocking.",
+    "Historical stored-baseline comparisons do not prove causality."
+  ]
+}
+
+FileUtils.mkdir_p(options.fetch(:output))
+PerfgateEvaluation.write_json(File.join(options.fetch(:output), "summary.json"), summary)
+
+format_rate = lambda do |item|
+  if item["proportion"].nil?
+    "not estimated (0 observations)"
+  else
+    format("%d/%d = %.3f (95%% Wilson %.3f–%.3f)", item["count"], item["denominator"],
+           item["proportion"], item["lower"], item["upper"])
+  end
+end
+
+lines = []
+lines << "# Evaluation analysis: #{plan.fetch('study_id')}"
+lines << ""
+lines << "Status: **#{summary.fetch('status').tr('_', ' ')}**. This report does not, by itself, validate merge blocking."
+lines << ""
+lines << "- Plan: `#{plan_digest}`"
+lines << "- Complete comparisons: #{complete.length}/#{trials.length}"
+lines << "- Collection issues: #{audit.fetch('issues').length}"
+lines << "- Distinct days: #{days.length}"
+lines << "- Distinct worker instances: #{workers.length}"
+lines << ""
+lines << "## A/A outcomes"
+lines << ""
+PerfgateEvaluation::OUTCOMES.each do |outcome|
+  lines << "- #{outcome.upcase}: #{format_rate.call(summary.dig('aa', 'outcome_distribution', outcome))}"
+end
+lines << ""
+lines << "## Fixed-injection outcomes"
+lines << ""
+outcome_distributions.sort.each do |condition, distribution|
+  next if condition == "aa"
+  fail_rate = distribution.fetch("fail")
+  lines << "- `#{condition}` FAIL: #{format_rate.call(fail_rate)}"
+end
+lines << ""
+lines << "These are detection proportions for fixed source changes whose true performance effects are unknown; they are not formal power estimates."
+lines << ""
+lines << "## Rerun reversal"
+lines << ""
+if valid_pairs.empty?
+  lines << "Not estimated (0 complete preassigned pairs)."
+else
+  lines << format("%d/%d = %.3f (95%% Wilson %.3f–%.3f).", reversals, valid_pairs.length,
+                  summary.dig("rerun_reversal", "proportion"), reversal_lower, reversal_upper)
+end
+lines << ""
+lines << "## Runtime"
+lines << ""
+if comparison_times.empty?
+  lines << "Not estimated."
+else
+  lines << format("Median complete-comparison time: %.2f seconds; total captured comparison time: %.2f seconds.",
+                  PerfgateEvaluation.median(comparison_times), comparison_times.sum)
+end
+lines << ""
+lines << "## Interpretation limits"
+lines << ""
+summary.fetch("interpretation_limits").each { |limit| lines << "- #{limit}" }
+File.write(File.join(options.fetch(:output), "report.md"), "#{lines.join("\n")}\n")
+
+puts "analysis: #{File.join(options.fetch(:output), 'report.md')}"

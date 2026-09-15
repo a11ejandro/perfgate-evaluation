@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/perfgate-evaluation/trial-manifest-v1.schema.json",
+  "title": "Perfgate evaluation trial manifest",
+  "type": "object",
+  "required": [
+    "schema_version", "study_id", "stage", "trial_id", "condition",
+    "arm", "plan_digest", "app_revision", "perfgate_revision",
+    "environment", "started_at", "status"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "stage": { "enum": ["calibration", "held_out"] },
+    "arm": { "enum": ["reference", "candidate"] },
+    "status": {
+      "enum": ["running", "completed", "perfgate_nonzero_exit", "artifact_invalid"]
+    },
+    "evidence_result": {
+      "type": ["string", "null"],
+      "enum": ["pass", "warn", "fail", "inconclusive", "incomparable", null]
+    }
+  },
+  "additionalProperties": true
+}
+

@@ -1,0 +1,135 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+include PerfgateEvaluation
+
+options = {
+  config: File.join(PerfgateEvaluation::ROOT, "config", "study.yml")
+}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/freeze_plan --stage calibration|held_out --output PATH [options]"
+  parser.on("--stage STAGE") { |value| options[:stage] = value }
+  parser.on("--config PATH") { |value| options[:config] = File.expand_path(value) }
+  parser.on("--output PATH") { |value| options[:output] = File.expand_path(value) }
+end.parse!
+
+abort "--stage must be calibration or held_out" unless %w[calibration held_out].include?(options[:stage])
+abort "--output is required" unless options[:output]
+abort "refusing to overwrite #{options[:output]}" if File.exist?(options[:output])
+
+configuration = PerfgateEvaluation.read_yaml(options[:config])
+study = configuration.fetch("study")
+PerfgateEvaluation.validate_identifier!("study.id", study.fetch("id"))
+repository = File.expand_path(study.fetch("subject_repository"), PerfgateEvaluation::ROOT)
+abort "subject repository does not exist: #{repository}" unless File.directory?(File.join(repository, ".git"))
+PerfgateEvaluation.ensure_clean_repository!(repository)
+perfgate_repository = File.expand_path(study.fetch("perfgate_repository"), PerfgateEvaluation::ROOT)
+abort "Perfgate repository does not exist: #{perfgate_repository}" unless File.directory?(File.join(perfgate_repository, ".git"))
+
+stage_configuration = configuration.fetch(options[:stage])
+if options[:stage] == "held_out"
+  abort "held_out.ready must be true" unless stage_configuration["ready"] == true
+  required = %w[
+    calibration_artifact calibration_artifact_digest aa_repetitions
+    injection_repetitions minimum_distinct_days minimum_worker_instances
+  ]
+  required += stage_configuration.fetch("acceptance").keys
+  unresolved = required.select do |key|
+    value = stage_configuration[key] || stage_configuration.fetch("acceptance", {})[key]
+    value.nil?
+  end
+  abort "held-out plan has unresolved fields: #{unresolved.join(', ')}" unless unresolved.empty?
+  artifact = File.expand_path(stage_configuration.fetch("calibration_artifact"), PerfgateEvaluation::ROOT)
+  abort "calibration artifact is missing: #{artifact}" unless File.file?(artifact)
+  actual = PerfgateEvaluation.sha256_file(artifact)
+  abort "calibration artifact digest mismatch" unless actual == stage_configuration.fetch("calibration_artifact_digest")
+end
+
+conditions_path = File.expand_path(study.fetch("conditions"), PerfgateEvaluation::ROOT)
+conditions = PerfgateEvaluation.read_yaml(conditions_path).fetch("conditions")
+reference_revision = PerfgateEvaluation.resolve_revision(repository, study.fetch("reference_ref"))
+perfgate_revision = PerfgateEvaluation.perfgate_revision(repository)
+PerfgateEvaluation.resolve_revision(perfgate_repository, perfgate_revision)
+perfgate_runtime_digest = PerfgateEvaluation.git_runtime_source_digest(perfgate_repository, perfgate_revision)
+config_path = File.join(repository, study.fetch("perfgate_config"))
+perfgate_configuration = PerfgateEvaluation.read_yaml(config_path)
+
+aa_repetitions = Integer(stage_configuration.fetch("aa_repetitions"))
+injection_repetitions = Integer(stage_configuration.fetch("injection_repetitions"))
+abort "replication counts must be positive" unless aa_repetitions.positive? && injection_repetitions.positive?
+abort "replication counts must be even for preassigned reversal pairs" unless aa_repetitions.even? && injection_repetitions.even?
+
+trials = conditions.flat_map do |name, specification|
+  PerfgateEvaluation.validate_identifier!("condition", name)
+  count = specification.fetch("kind") == "null_control" ? aa_repetitions : injection_repetitions
+  candidate_revision = PerfgateEvaluation.resolve_revision(repository, specification.fetch("candidate_ref"))
+  (1..count).map do |repetition|
+    {
+      "trial_id" => format("%s-%03d", name, repetition),
+      "condition" => name,
+      "condition_kind" => specification.fetch("kind"),
+      "repetition" => repetition,
+      "reversal_pair" => format("%s-pair-%03d", name, ((repetition - 1) / 2) + 1),
+      "injection" => specification.fetch("injection"),
+      "expected_signal" => specification.fetch("expected_signal"),
+      "supports_known_effect_power_claim" => specification.fetch("supports_known_effect_power_claim"),
+      "reference_revision" => reference_revision,
+      "candidate_revision" => candidate_revision,
+      "execution_sequence" => %w[reference candidate]
+    }
+  end
+end
+
+rng = Random.new(Integer(study.fetch("randomization_seed")))
+trials.shuffle!(random: rng)
+trials.each_with_index { |trial, index| trial["schedule_index"] = index + 1 }
+workload_digests = study.fetch("workload_sources").to_h do |relative|
+  path = File.join(repository, relative)
+  abort "missing workload source: #{path}" unless File.file?(path)
+  [relative, PerfgateEvaluation.sha256_file(path)]
+end
+
+plan = {
+  "schema_version" => 1,
+  "study_id" => study.fetch("id"),
+  "study_title" => study.fetch("title"),
+  "stage" => options.fetch(:stage),
+  "generated_at" => Time.now.utc.iso8601,
+  "protocol_path" => "PROTOCOL.md",
+  "protocol_digest" => PerfgateEvaluation.sha256_file(File.join(PerfgateEvaluation::ROOT, "PROTOCOL.md")),
+  "evaluation_machinery_digest" => PerfgateEvaluation.machinery_digest,
+  "source_configuration_path" => options.fetch(:config).delete_prefix("#{PerfgateEvaluation::ROOT}/"),
+  "source_configuration_digest" => PerfgateEvaluation.sha256_file(options.fetch(:config)),
+  "randomization_seed" => Integer(study.fetch("randomization_seed")),
+  "subject" => {
+    "repository" => study.fetch("subject_repository_url"),
+    "reference_ref" => study.fetch("reference_ref"),
+    "reference_revision" => reference_revision,
+    "configuration_path" => study.fetch("perfgate_config"),
+    "configuration_digest" => PerfgateEvaluation.sha256_file(config_path),
+    "configuration_snapshot" => perfgate_configuration,
+    "workload_source_digests" => workload_digests,
+    "dataset_contract" => perfgate_configuration.fetch("dataset")
+  },
+  "perfgate_revision" => perfgate_revision,
+  "perfgate_runtime_source_digest" => perfgate_runtime_digest,
+  "environment_class" => study.fetch("environment_class"),
+  "reference_design" => study.fetch("reference_design"),
+  "estimator" => study.fetch("estimator"),
+  "evidence_outcomes" => study.fetch("evidence_outcomes"),
+  "stage_configuration" => stage_configuration,
+  "analysis" => configuration.fetch("analysis"),
+  "conditions_digest" => PerfgateEvaluation.sha256_file(conditions_path),
+  "trials" => trials
+}
+plan["plan_fingerprint"] = PerfgateEvaluation.sha256_string(PerfgateEvaluation.canonical_json(plan))
+
+PerfgateEvaluation.write_json(options[:output], plan)
+File.write("#{options[:output]}.sha256", "#{PerfgateEvaluation.sha256_file(options[:output])}\n")
+validator = File.join(PerfgateEvaluation::ROOT, "bin", "validate_plan")
+abort "generated plan failed validation" unless system(validator, "--plan", options[:output], "--repository", repository)
+puts "frozen #{options[:stage]} plan with #{trials.length} comparisons: #{options[:output]}"
+puts "plan checksum: #{PerfgateEvaluation.sha256_file(options[:output])}"

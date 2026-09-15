@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = {}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/validate_plan --plan PATH [--repository PATH]"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--repository PATH") { |value| options[:repository] = File.expand_path(value) }
+  parser.on("--bundled") { options[:bundled] = true }
+end.parse!
+
+abort "--plan is required" unless options[:plan]
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+repository = options[:repository]
+abort "subject repository is required through --repository" unless repository
+
+unless options[:bundled]
+  command = [
+    PerfgateEvaluation.rbenv_path, "exec", "bundle", "exec", "ruby", File.expand_path(__FILE__),
+    "--bundled", "--plan", options.fetch(:plan), "--repository", repository
+  ]
+  Dir.chdir(repository) { exec(*command) }
+end
+
+require "bundler/setup"
+require "json_schemer"
+
+schema = JSONSchemer.schema(
+  PerfgateEvaluation.read_json(File.join(PerfgateEvaluation::ROOT, "schemas", "study-plan-v1.schema.json"))
+)
+errors = schema.validate(plan).to_a
+unless errors.empty?
+  errors.each { |error| warn JSON.generate(error) }
+  abort "study plan schema validation failed with #{errors.length} error(s)"
+end
+
+trial_ids = plan.fetch("trials").map { |trial| trial.fetch("trial_id") }
+abort "study plan contains duplicate trial IDs" unless trial_ids.uniq.length == trial_ids.length
+schedule = plan.fetch("trials").map { |trial| trial.fetch("schedule_index") }
+abort "study plan schedule indexes are not contiguous" unless schedule.sort == (1..schedule.length).to_a
+
+puts "valid study plan: #{options[:plan]}"

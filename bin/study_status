@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = { results: File.join(PerfgateEvaluation::ROOT, "results") }
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/study_status --plan PATH [--results PATH]"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--results PATH") { |value| options[:results] = File.expand_path(value) }
+end.parse!
+
+abort "--plan is required" unless options[:plan]
+PerfgateEvaluation.verify_sidecar!(options.fetch(:plan))
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+root = File.join(options.fetch(:results), plan.fetch("study_id"), plan.fetch("stage"))
+
+complete = 0
+next_action = nil
+plan.fetch("trials").sort_by { |trial| trial.fetch("schedule_index") }.each do |trial|
+  trial_root = File.join(root, trial.fetch("trial_id"))
+  reference_manifest = File.join(trial_root, "reference", "trial.json")
+  candidate_manifest = File.join(trial_root, "candidate", "trial.json")
+  reference = File.file?(reference_manifest) ? PerfgateEvaluation.read_json(reference_manifest) : nil
+  candidate = File.file?(candidate_manifest) ? PerfgateEvaluation.read_json(candidate_manifest) : nil
+
+  if reference&.fetch("status", nil) != "completed"
+    next_action ||= [trial, "reference", nil]
+  elsif candidate&.fetch("status", nil) != "completed"
+    run_directory = reference.fetch("run_result")
+    next_action ||= [trial, "candidate", run_directory]
+  else
+    complete += 1
+  end
+end
+
+puts "study: #{plan.fetch('study_id')}"
+puts "stage: #{plan.fetch('stage')}"
+puts "complete comparisons: #{complete}/#{plan.fetch('trials').length}"
+
+if next_action
+  trial, arm, reference = next_action
+  revision = trial.fetch("#{arm}_revision")
+  puts "next scheduled action:"
+  puts "  trial: #{trial.fetch('trial_id')}"
+  puts "  condition: #{trial.fetch('condition')}"
+  puts "  arm: #{arm}"
+  puts "  required revision: #{revision}"
+  command = [
+    "PERFGATE_ENVIRONMENT_CLASS=#{plan.fetch('environment_class')}",
+    File.join(PerfgateEvaluation::ROOT, "bin", "run_trial"),
+    "--plan", options.fetch(:plan), "--trial", trial.fetch("trial_id"), "--arm", arm,
+    "--repository", "SUBJECT_REPOSITORY", "--results", options.fetch(:results)
+  ]
+  command.concat(["--reference", reference]) if reference
+  puts "  command: #{command.join(' ')}"
+else
+  puts "all planned comparisons are complete"
+end
