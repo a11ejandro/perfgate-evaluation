@@ -19,7 +19,7 @@ abort "subject repository is required through --repository" unless repository
 
 unless options[:bundled]
   command = [
-    PerfgateEvaluation.rbenv_path, "exec", "bundle", "exec", "ruby", File.expand_path(__FILE__),
+    *PerfgateEvaluation.bundle_command(repository), "exec", "ruby", File.expand_path(__FILE__),
     "--bundled", "--plan", options.fetch(:plan), "--repository", repository
   ]
   Dir.chdir(repository) { exec(*command) }

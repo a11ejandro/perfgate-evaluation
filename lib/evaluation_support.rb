@@ -5,6 +5,7 @@ require "digest"
 require "fileutils"
 require "json"
 require "open3"
+require "rbconfig"
 require "time"
 require "yaml"
 
@@ -98,11 +99,27 @@ module PerfgateEvaluation
   end
 
   def rbenv_path
-    path = ENV.fetch("PATH", "").split(File::PATH_SEPARATOR)
-              .map { |directory| File.join(directory, "rbenv") }
-              .find { |candidate| File.executable?(candidate) }
-    abort "rbenv is required to honor the subject's .ruby-version" unless path
-    path
+    ENV.fetch("PATH", "").split(File::PATH_SEPARATOR)
+       .map { |directory| File.join(directory, "rbenv") }
+       .find { |candidate| File.executable?(candidate) }
+  end
+
+  def required_ruby(repository)
+    File.read(File.join(repository, ".ruby-version")).strip
+  end
+
+  def ruby_command(repository)
+    return [RbConfig.ruby] if RUBY_VERSION.start_with?(required_ruby(repository))
+    abort "Ruby #{required_ruby(repository)} is required and rbenv is unavailable" unless rbenv_path
+
+    [rbenv_path, "exec", "ruby"]
+  end
+
+  def bundle_command(repository)
+    return ["bundle"] if RUBY_VERSION.start_with?(required_ruby(repository))
+    abort "Ruby #{required_ruby(repository)} is required and rbenv is unavailable" unless rbenv_path
+
+    [rbenv_path, "exec", "bundle"]
   end
 
   def machinery_digest
@@ -150,7 +167,7 @@ module PerfgateEvaluation
 
   def resolved_perfgate_path(subject_repository)
     capture(
-      rbenv_path, "exec", "bundle", "exec", "ruby", "-e",
+      *bundle_command(subject_repository), "exec", "ruby", "-e",
       'require "bundler/setup"; print Gem.loaded_specs.fetch("perfgate").full_gem_path',
       chdir: subject_repository
     )
@@ -167,7 +184,7 @@ module PerfgateEvaluation
 
   def environment_snapshot(repository)
     ruby_environment = JSON.parse(capture(
-      rbenv_path, "exec", "ruby", "-rjson", "-retc", "-e",
+      *ruby_command(repository), "-rjson", "-retc", "-e",
       'print JSON.generate({"description" => RUBY_DESCRIPTION, "platform" => RUBY_PLATFORM, "processors" => Etc.nprocessors})',
       chdir: repository
     ))

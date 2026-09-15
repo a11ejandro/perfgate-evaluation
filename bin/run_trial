@@ -119,7 +119,7 @@ manifest_path = File.join(trial_root, "trial.json")
 PerfgateEvaluation.write_json(manifest_path, manifest)
 
 command = [
-  PerfgateEvaluation.rbenv_path, "exec", "bundle", "exec", "perfgate", "run",
+  *PerfgateEvaluation.bundle_command(repository), "exec", "perfgate", "run",
   "--config", config_path, "--output", trial_root, "--format", "markdown"
 ]
 command.concat(["--compare", options.fetch(:reference)]) if options[:arm] == "candidate"

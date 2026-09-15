@@ -17,7 +17,7 @@ abort "--root is required" unless options[:root]
 
 unless options[:bundled]
   command = [
-    PerfgateEvaluation.rbenv_path, "exec", "bundle", "exec", "ruby", File.expand_path(__FILE__),
+    *PerfgateEvaluation.bundle_command(options[:repository]), "exec", "ruby", File.expand_path(__FILE__),
     "--bundled", "--repository", options[:repository], "--root", options[:root]
   ]
   Dir.chdir(options[:repository]) { exec(*command) }
