@@ -3,7 +3,7 @@
   "study_id": "perfgate-micropost-calibration-v1",
   "study_title": "Perfgate Micropost calibration",
   "stage": "calibration",
-  "generated_at": "2026-09-15T22:52:09Z",
+  "generated_at": "2026-09-15T23:03:18Z",
   "protocol_path": "PROTOCOL.md",
   "protocol_digest": "sha256:943827d7fdae27e3b59b1d076a35e1daab7a3adc12602b1ffdfe8157e804a6bf",
   "evaluation_machinery_digest": "sha256:30d26edf47b64758b1d20acd7e9d43bd48b93a78d04b458ea8e10f43fc48fbb6",
@@ -13,7 +13,7 @@
   "subject": {
     "repository": "https://github.com/a11ejandro/perfgate-micropost.git",
     "reference_ref": "main",
-    "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+    "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
     "configuration_path": "perfgate.yml",
     "configuration_digest": "sha256:b5bff7092ccbbeafc700861585f8dae4a05256ab8231c134501f824fb76e8ba8",
     "configuration_snapshot": {
@@ -136,8 +136,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -153,8 +153,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -170,8 +170,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -187,8 +187,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -204,8 +204,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -221,8 +221,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -238,8 +238,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -255,8 +255,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -272,8 +272,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -289,8 +289,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -306,8 +306,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -323,8 +323,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -340,8 +340,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -357,8 +357,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -374,8 +374,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -391,8 +391,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -408,8 +408,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -425,8 +425,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -442,8 +442,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -459,8 +459,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -476,8 +476,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -493,8 +493,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -510,8 +510,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -527,8 +527,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -544,8 +544,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -561,8 +561,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -578,8 +578,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -595,8 +595,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -612,8 +612,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -629,8 +629,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -646,8 +646,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -663,8 +663,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -680,8 +680,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -697,8 +697,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -714,8 +714,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -731,8 +731,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -748,8 +748,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -765,8 +765,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -782,8 +782,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -799,8 +799,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -816,8 +816,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -833,8 +833,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -850,8 +850,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -867,8 +867,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -884,8 +884,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -901,8 +901,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -918,8 +918,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -935,8 +935,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -952,8 +952,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -969,8 +969,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -986,8 +986,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1003,8 +1003,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1020,8 +1020,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1037,8 +1037,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1054,8 +1054,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1071,8 +1071,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1088,8 +1088,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1105,8 +1105,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1122,8 +1122,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1139,8 +1139,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1156,8 +1156,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1173,8 +1173,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1190,8 +1190,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1207,8 +1207,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1224,8 +1224,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1241,8 +1241,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1258,8 +1258,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1275,8 +1275,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1292,8 +1292,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1309,8 +1309,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1326,8 +1326,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1343,8 +1343,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1360,8 +1360,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1377,8 +1377,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1394,8 +1394,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1411,8 +1411,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1428,8 +1428,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1445,8 +1445,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1462,8 +1462,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1479,8 +1479,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1496,8 +1496,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1513,8 +1513,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1530,8 +1530,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1547,8 +1547,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1564,8 +1564,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1581,8 +1581,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1598,8 +1598,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1615,8 +1615,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1632,8 +1632,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1649,8 +1649,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1666,8 +1666,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1683,8 +1683,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1700,8 +1700,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1717,8 +1717,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1734,8 +1734,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1751,8 +1751,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1768,8 +1768,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1785,8 +1785,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1802,8 +1802,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1819,8 +1819,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1836,8 +1836,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1853,8 +1853,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1870,8 +1870,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1887,8 +1887,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1904,8 +1904,8 @@
       "injection": "remove_index_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "f5eb44540663bbd2fb8265e255048334d0324966",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "9617d9a7c7d1f19d4ad8ed79223bc71912beabc9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1921,8 +1921,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1938,8 +1938,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1955,8 +1955,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1972,8 +1972,8 @@
       "injection": "json_roundtrip_and_string_duplication",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0b2f268138a3e5427ee8ed5931b0de8f59647fe8",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "b66815b91238f82897d9b4a2a14429d36aa2086d",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -1989,8 +1989,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2006,8 +2006,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2023,8 +2023,8 @@
       "injection": "recount_comments_after_create",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "5d68bccbfac7516b0168b3a8c7b910095a33ed50",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "3d9a182435a5eadb99f8b356146d8cf7334bce1e",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2040,8 +2040,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2057,8 +2057,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2074,8 +2074,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2091,8 +2091,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2108,8 +2108,8 @@
       "injection": "remove_digest_eager_loading_and_counter_cache",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "00df61fcaf2c42054dcec52b49c1cde3540f449f",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "94831c6eb6ce2a23c2b51f56fb020d03913f13a5",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2125,8 +2125,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2142,8 +2142,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2159,8 +2159,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2176,8 +2176,8 @@
       "injection": "remove_comment_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "ae9dc18903b4a9228266b4e46ac40d2b692d439a",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "8a4738f620658660d645f56d104423336065342b",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2193,8 +2193,8 @@
       "injection": "materialize_all_search_matches_before_pagination",
       "expected_signal": "allocations",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "010559b166ec36defc698d171cbad6da7a485e37",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "516b5b3654a8c3fd7631fa0df4ad1a3af486c915",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2210,8 +2210,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2227,8 +2227,8 @@
       "injection": "replace_counter_cache_with_live_counts",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "bdb17292465ff01734f2bd01835a0f5d8cbbee03",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "add3d1f194ef52ac4ee265109d48cb15d6899706",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2244,8 +2244,8 @@
       "injection": "none",
       "expected_signal": "no_intentional_change",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2261,8 +2261,8 @@
       "injection": "remove_comment_author_eager_loading",
       "expected_signal": "sql_count",
       "supports_known_effect_power_claim": false,
-      "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
-      "candidate_revision": "0306d7554107e8c809ad81c8c3fc0af4a0891508",
+      "reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+      "candidate_revision": "aaab7428e8189353ef9691edfb7cd7f00695feb7",
       "execution_sequence": [
         "reference",
         "candidate"
@@ -2270,5 +2270,5 @@
       "schedule_index": 126
     }
   ],
-  "plan_fingerprint": "sha256:a8118f882151f7069b45349b13f83bbf0becfd53621c08101e047e12450b53be"
+  "plan_fingerprint": "sha256:8dac5c294922117963003c026737eee3038d8d3f0e5e0a0438d8505318492230"
 }
