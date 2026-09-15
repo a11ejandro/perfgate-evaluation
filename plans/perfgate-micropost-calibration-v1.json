@@ -3,15 +3,15 @@
   "study_id": "perfgate-micropost-calibration-v1",
   "study_title": "Perfgate Micropost calibration",
   "stage": "calibration",
-  "generated_at": "2026-09-15T10:49:27Z",
+  "generated_at": "2026-09-15T15:01:01Z",
   "protocol_path": "PROTOCOL.md",
   "protocol_digest": "sha256:943827d7fdae27e3b59b1d076a35e1daab7a3adc12602b1ffdfe8157e804a6bf",
-  "evaluation_machinery_digest": "sha256:2d29def2a4395cd097efa6a391584ec94402368e380a3fc713d9df415e045b22",
+  "evaluation_machinery_digest": "sha256:a73f95c92c24296239c21f4ffaf47ac50d6a08e4d4940c0e87099e74f4e293e2",
   "source_configuration_path": "config/study.yml",
-  "source_configuration_digest": "sha256:c668e6ff3376c01661de30461c98e2e1274f051e4c936357cf323f4d1242487b",
+  "source_configuration_digest": "sha256:c6b91b15157cb1697889af8d7c2d1eb82323500f22c2055158318e652aef1189",
   "randomization_seed": 20260914,
   "subject": {
-    "repository": "https://github.com/a11ejandro/baseline-micropost.git",
+    "repository": "https://github.com/a11ejandro/perfgate-micropost.git",
     "reference_ref": "main",
     "reference_revision": "e40aa8081a9a71cd9978746eb87b9dc2bcfc21bb",
     "configuration_path": "perfgate.yml",
@@ -2270,5 +2270,5 @@
       "schedule_index": 126
     }
   ],
-  "plan_fingerprint": "sha256:f963c6cc96e22b947cd7626d5b125066cbeb0e643ea905377a69cefedf1689b5"
+  "plan_fingerprint": "sha256:c469f1b3f195873ccbda453d260c5d1cd23e7ffbbe0a36606c7c701adba71375"
 }

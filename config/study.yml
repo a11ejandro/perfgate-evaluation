@@ -5,7 +5,7 @@ study:
   title: Perfgate Micropost calibration
   status: calibration
   subject_repository: ../perfgate-micropost
-  subject_repository_url: https://github.com/a11ejandro/baseline-micropost.git
+  subject_repository_url: https://github.com/a11ejandro/perfgate-micropost.git
   perfgate_repository: ../perfgate
   reference_ref: main
   perfgate_config: perfgate.yml

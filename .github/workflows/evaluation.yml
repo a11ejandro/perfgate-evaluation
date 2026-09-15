@@ -21,7 +21,7 @@ on:
       subject_repository:
         description: GitHub owner/repository for the subject
         required: true
-        default: a11ejandro/baseline-micropost
+        default: a11ejandro/perfgate-micropost
 
 permissions:
   contents: read
