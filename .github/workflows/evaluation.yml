@@ -1,4 +1,5 @@
 name: Perfgate evaluation arm
+run-name: ${{ inputs.trial }} / ${{ inputs.arm }}
 
 on:
   workflow_dispatch:

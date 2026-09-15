@@ -65,6 +65,13 @@ plan.fetch("trials").each_with_index do |trial, schedule_index|
   reference = File.file?(reference_path) ? PerfgateEvaluation.read_json(reference_path) : nil
   candidate = File.file?(candidate_path) ? PerfgateEvaluation.read_json(candidate_path) : nil
 
+  reference_mismatches = reference && PerfgateEvaluation.trial_manifest_mismatches(
+    plan: plan, plan_digest: plan_digest, trial: trial, arm: "reference", manifest: reference
+  )
+  candidate_mismatches = candidate && PerfgateEvaluation.trial_manifest_mismatches(
+    plan: plan, plan_digest: plan_digest, trial: trial, arm: "candidate", manifest: candidate
+  )
+
   status = if reference.nil? && candidate.nil?
              "missing_both_arms"
            elsif reference.nil?
@@ -75,11 +82,23 @@ plan.fetch("trials").each_with_index do |trial, schedule_index|
              "reference_#{reference['status']}"
            elsif candidate["status"] != "completed"
              "candidate_#{candidate['status']}"
+           elsif !reference_mismatches.empty?
+             "reference_manifest_mismatch:#{reference_mismatches.join('+')}"
+           elsif !candidate_mismatches.empty?
+             "candidate_manifest_mismatch:#{candidate_mismatches.join('+')}"
            elsif !PerfgateEvaluation::OUTCOMES.include?(candidate["evidence_result"])
              "missing_evidence_result"
            else
              "complete"
            end
+
+  recorded_comparison_path = candidate && candidate["comparison_result"]
+  comparison_path = PerfgateEvaluation.resolve_downloaded_artifact_path(
+    recorded_comparison_path,
+    arm_root: File.join(base, "candidate"),
+    category: "comparisons"
+  )
+  status = "missing_comparison_artifact" if status == "complete" && comparison_path.nil?
 
   audit["issues"] << { "trial_id" => trial.fetch("trial_id"), "status" => status } unless status == "complete"
   candidate_environment = candidate&.fetch("environment", {}) || {}
@@ -91,7 +110,6 @@ plan.fetch("trials").each_with_index do |trial, schedule_index|
                        end
   calendar_day = candidate&.dig("started_at")&.slice(0, 10)
 
-  comparison_path = candidate && candidate["comparison_result"]
   trial_rows << {
     "study_id" => plan.fetch("study_id"),
     "stage" => plan.fetch("stage"),

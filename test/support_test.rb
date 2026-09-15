@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "minitest/autorun"
+require "tmpdir"
 require_relative "../lib/evaluation_support"
 
 class EvaluationSupportTest < Minitest::Test
@@ -27,5 +28,58 @@ class EvaluationSupportTest < Minitest::Test
 
     assert_equal PerfgateEvaluation.canonical_json(first), PerfgateEvaluation.canonical_json(second)
   end
-end
 
+  def test_resolve_downloaded_artifact_path_uses_local_bundle_copy
+    Dir.mktmpdir do |directory|
+      comparisons = File.join(directory, "comparisons")
+      FileUtils.mkdir_p(comparisons)
+      local = File.join(comparisons, "result.json")
+      File.write(local, "{}")
+
+      resolved = PerfgateEvaluation.resolve_downloaded_artifact_path(
+        "/home/runner/results/comparisons/result.json",
+        arm_root: directory,
+        category: "comparisons"
+      )
+
+      assert_equal local, resolved
+    end
+  end
+
+  def test_resolve_downloaded_artifact_path_does_not_invent_a_missing_file
+    Dir.mktmpdir do |directory|
+      resolved = PerfgateEvaluation.resolve_downloaded_artifact_path(
+        "/home/runner/results/comparisons/missing.json",
+        arm_root: directory,
+        category: "comparisons"
+      )
+
+      assert_nil resolved
+    end
+  end
+
+  def test_trial_manifest_mismatches_detects_another_plan
+    plan = {
+      "study_id" => "study", "stage" => "calibration", "perfgate_revision" => "p",
+      "perfgate_runtime_source_digest" => "runtime", "environment_class" => "runner",
+      "subject" => { "configuration_digest" => "config" }
+    }
+    trial = {
+      "trial_id" => "trial-001", "condition" => "aa", "schedule_index" => 1,
+      "reference_revision" => "app"
+    }
+    manifest = {
+      "study_id" => "study", "stage" => "calibration", "trial_id" => "trial-001",
+      "condition" => "aa", "schedule_index" => 1, "arm" => "reference",
+      "plan_digest" => "old-plan", "app_revision" => "app", "perfgate_revision" => "p",
+      "perfgate_runtime_source_digest" => "runtime", "configuration_digest" => "config",
+      "status" => "completed", "environment" => { "declared_class" => "runner" }
+    }
+
+    mismatches = PerfgateEvaluation.trial_manifest_mismatches(
+      plan: plan, plan_digest: "new-plan", trial: trial, arm: "reference", manifest: manifest
+    )
+
+    assert_equal ["plan_digest"], mismatches
+  end
+end

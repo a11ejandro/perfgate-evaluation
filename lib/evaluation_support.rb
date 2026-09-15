@@ -241,6 +241,35 @@ module PerfgateEvaluation
     midpoint = sorted.length / 2
     sorted.length.odd? ? sorted[midpoint] : (sorted[midpoint - 1] + sorted[midpoint]) / 2.0
   end
+
+  def resolve_downloaded_artifact_path(recorded_path, arm_root:, category:)
+    return nil if recorded_path.to_s.empty?
+    return recorded_path if File.file?(recorded_path)
+
+    downloaded_path = File.join(arm_root, category, File.basename(recorded_path))
+    File.file?(downloaded_path) ? downloaded_path : nil
+  end
+
+  def trial_manifest_mismatches(plan:, plan_digest:, trial:, arm:, manifest:)
+    expected = {
+      "study_id" => plan.fetch("study_id"),
+      "stage" => plan.fetch("stage"),
+      "trial_id" => trial.fetch("trial_id"),
+      "condition" => trial.fetch("condition"),
+      "schedule_index" => trial.fetch("schedule_index"),
+      "arm" => arm,
+      "plan_digest" => plan_digest,
+      "app_revision" => trial.fetch("#{arm}_revision"),
+      "perfgate_revision" => plan.fetch("perfgate_revision"),
+      "perfgate_runtime_source_digest" => plan.fetch("perfgate_runtime_source_digest"),
+      "configuration_digest" => plan.dig("subject", "configuration_digest"),
+      "status" => "completed"
+    }
+    mismatches = expected.reject { |key, value| manifest[key] == value }.keys
+    declared_class = manifest.dig("environment", "declared_class")
+    mismatches << "environment.declared_class" unless declared_class == plan.fetch("environment_class")
+    mismatches
+  end
 end
 
 require "etc"

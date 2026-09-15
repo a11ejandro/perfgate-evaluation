@@ -3,10 +3,10 @@
   "study_id": "perfgate-micropost-calibration-v1",
   "study_title": "Perfgate Micropost calibration",
   "stage": "calibration",
-  "generated_at": "2026-09-15T23:03:18Z",
+  "generated_at": "2026-09-15T23:13:32Z",
   "protocol_path": "PROTOCOL.md",
   "protocol_digest": "sha256:943827d7fdae27e3b59b1d076a35e1daab7a3adc12602b1ffdfe8157e804a6bf",
-  "evaluation_machinery_digest": "sha256:30d26edf47b64758b1d20acd7e9d43bd48b93a78d04b458ea8e10f43fc48fbb6",
+  "evaluation_machinery_digest": "sha256:dcdd6811c2548b44a9bcea8473aceb3df2f8bd591a04b3943ca945a10f51c017",
   "source_configuration_path": "config/study.yml",
   "source_configuration_digest": "sha256:c6b91b15157cb1697889af8d7c2d1eb82323500f22c2055158318e652aef1189",
   "randomization_seed": 20260914,
@@ -2270,5 +2270,5 @@
       "schedule_index": 126
     }
   ],
-  "plan_fingerprint": "sha256:8dac5c294922117963003c026737eee3038d8d3f0e5e0a0438d8505318492230"
+  "plan_fingerprint": "sha256:4d9e15d496fcd62116167440e8b2f36c2913303dc0cc53c77aa52a00f36f600e"
 }

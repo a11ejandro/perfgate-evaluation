@@ -1,0 +1,175 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require "thread"
+require_relative "../lib/evaluation_support"
+
+options = {
+  from: 1,
+  count: 1,
+  concurrency: 1,
+  evaluation_repository: "a11ejandro/perfgate-evaluation",
+  subject_repository: "a11ejandro/perfgate-micropost",
+  workflow: "evaluation.yml",
+  workflow_ref: "main",
+  results: File.join(PerfgateEvaluation::ROOT, "results")
+}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/run_hosted_batch --plan PATH [options]"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--from INDEX", Integer) { |value| options[:from] = value }
+  parser.on("--count NUMBER", Integer) { |value| options[:count] = value }
+  parser.on("--concurrency NUMBER", Integer) { |value| options[:concurrency] = value }
+  parser.on("--evaluation-repository OWNER/REPO") { |value| options[:evaluation_repository] = value }
+  parser.on("--subject-repository OWNER/REPO") { |value| options[:subject_repository] = value }
+  parser.on("--workflow FILE") { |value| options[:workflow] = value }
+  parser.on("--workflow-ref REF") { |value| options[:workflow_ref] = value }
+  parser.on("--results PATH") { |value| options[:results] = File.expand_path(value) }
+end.parse!
+
+abort "--plan is required" unless options[:plan]
+abort "--from must be positive" unless options[:from].positive?
+abort "--count must be positive" unless options[:count].positive?
+abort "--concurrency must be positive" unless options[:concurrency].positive?
+
+plan_digest = PerfgateEvaluation.verify_sidecar!(options.fetch(:plan))
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+unless PerfgateEvaluation.machinery_digest == plan.fetch("evaluation_machinery_digest")
+  abort "hosted execution machinery differs from the frozen plan"
+end
+
+trials = plan.fetch("trials").sort_by { |trial| trial.fetch("schedule_index") }
+selection = trials.slice(options.fetch(:from) - 1, options.fetch(:count)) || []
+abort "selected range contains no trials" if selection.empty?
+
+def run_command!(*command)
+  output, status = Open3.capture2e(*command)
+  raise "#{command.join(' ')} failed:\n#{output}" unless status.success?
+  output
+end
+
+def discover_run!(options, title, launched_at)
+  30.times do
+    output = run_command!(
+      "gh", "run", "list",
+      "--repo", options.fetch(:evaluation_repository),
+      "--workflow", options.fetch(:workflow),
+      "--event", "workflow_dispatch",
+      "--limit", "100",
+      "--json", "databaseId,displayTitle,createdAt,url"
+    )
+    runs = JSON.parse(output).select do |run|
+      run.fetch("displayTitle") == title && Time.iso8601(run.fetch("createdAt")) >= launched_at - 5
+    end
+    return runs.max_by { |run| run.fetch("databaseId") } unless runs.empty?
+    sleep 2
+  end
+  raise "could not discover dispatched run #{title.inspect}"
+end
+
+log_mutex = Mutex.new
+log_root = File.join(options.fetch(:results), plan.fetch("study_id"), plan.fetch("stage"))
+FileUtils.mkdir_p(log_root)
+execution_log = File.join(log_root, "hosted-execution.jsonl")
+
+record = lambda do |event|
+  payload = {
+    "recorded_at" => Time.now.utc.iso8601,
+    "plan_digest" => plan_digest
+  }.merge(event)
+  log_mutex.synchronize do
+    File.open(execution_log, "a") { |file| file.puts(JSON.generate(payload)) }
+  end
+end
+
+arm_root = lambda do |trial, arm|
+  File.join(log_root, trial.fetch("trial_id"), arm)
+end
+
+completed_manifest = lambda do |trial, arm|
+  path = File.join(arm_root.call(trial, arm), "trial.json")
+  next nil unless File.file?(path)
+  manifest = PerfgateEvaluation.read_json(path)
+  mismatches = PerfgateEvaluation.trial_manifest_mismatches(
+    plan: plan, plan_digest: plan_digest, trial: trial, arm: arm, manifest: manifest
+  )
+  mismatches.empty? ? manifest : nil
+end
+
+execute_arm = lambda do |trial, arm, reference_run_id|
+  existing = completed_manifest.call(trial, arm)
+  if existing
+    record.call("event" => "reused_local_artifact", "trial_id" => trial.fetch("trial_id"), "arm" => arm)
+    next existing.dig("environment", "github_run_id")
+  end
+
+  title = "#{trial.fetch('trial_id')} / #{arm}"
+  launched_at = Time.now.utc
+  command = [
+    "gh", "workflow", "run", options.fetch(:workflow),
+    "--repo", options.fetch(:evaluation_repository),
+    "--ref", options.fetch(:workflow_ref),
+    "-f", "plan=#{options.fetch(:plan).delete_prefix("#{PerfgateEvaluation::ROOT}/")}",
+    "-f", "trial=#{trial.fetch('trial_id')}",
+    "-f", "arm=#{arm}",
+    "-f", "subject_repository=#{options.fetch(:subject_repository)}"
+  ]
+  command.concat(["-f", "reference_run_id=#{reference_run_id}"]) if reference_run_id
+  run_command!(*command)
+  run = discover_run!(options, title, launched_at)
+  run_id = run.fetch("databaseId").to_s
+  record.call(
+    "event" => "dispatched", "trial_id" => trial.fetch("trial_id"), "arm" => arm,
+    "run_id" => run_id, "url" => run.fetch("url")
+  )
+  run_command!(
+    "gh", "run", "watch", run_id,
+    "--repo", options.fetch(:evaluation_repository), "--exit-status", "--interval", "10"
+  )
+  artifact = "perfgate-evaluation-#{trial.fetch('trial_id')}-#{arm}"
+  run_command!(
+    "gh", "run", "download", run_id,
+    "--repo", options.fetch(:evaluation_repository), "--name", artifact,
+    "--dir", options.fetch(:results)
+  )
+  run_command!(
+    File.join(PerfgateEvaluation::ROOT, "bin", "validate_bundle"),
+    "--repository", File.expand_path("../perfgate-micropost", PerfgateEvaluation::ROOT),
+    "--root", arm_root.call(trial, arm)
+  )
+  record.call(
+    "event" => "downloaded_and_validated", "trial_id" => trial.fetch("trial_id"),
+    "arm" => arm, "run_id" => run_id, "url" => run.fetch("url")
+  )
+  run_id
+end
+
+queue = Queue.new
+selection.each { |trial| queue << trial }
+failures = Queue.new
+workers = [options.fetch(:concurrency), selection.length].min.times.map do
+  Thread.new do
+    loop do
+      trial = queue.pop(true)
+      reference_run_id = execute_arm.call(trial, "reference", nil)
+      raise "reference artifact has no GitHub run ID" if reference_run_id.to_s.empty?
+      execute_arm.call(trial, "candidate", reference_run_id)
+    rescue ThreadError
+      break
+    rescue StandardError => error
+      failures << [trial&.fetch("trial_id", nil), error]
+    end
+  end
+end
+workers.each(&:join)
+
+unless failures.empty?
+  messages = []
+  messages << failures.pop until failures.empty?
+  messages.each { |trial_id, error| warn "#{trial_id || 'unknown'}: #{error.message}" }
+  abort "#{messages.length} hosted trial(s) failed"
+end
+
+puts "completed and validated #{selection.length} hosted comparison(s)"
+puts "execution log: #{execution_log}"

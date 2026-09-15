@@ -33,6 +33,7 @@ evaluation/
   bin/
     freeze_plan               Resolve refs and freeze an auditable JSON plan
     run_trial                 Capture one reference or candidate arm
+    run_hosted_batch          Dispatch, download, and validate a hosted batch
     validate_bundle           Validate schemas, checksums, and execution state
     collect_results           Produce trial- and metric-level CSV datasets
     analyze_results           Produce descriptive estimates and audit report
@@ -98,6 +99,20 @@ arm revision from the frozen plan. The reference and candidate arms remain
 separate workflow runs because the current implementation consumes a stored
 baseline. Dispatch trials in the plan's `schedule_index` order and distribute
 them over the preregistered days and workers.
+
+Run a bounded schedule segment with limited concurrency:
+
+```bash
+bin/run_hosted_batch \
+  --plan plans/perfgate-micropost-calibration-v1.json \
+  --from 1 \
+  --count 42 \
+  --concurrency 3
+```
+
+The batch command records GitHub run IDs, downloads both arms, validates the
+schema-v2 bundles and checksums, and resumes from locally downloaded completed
+arms. A failed arm is not treated as a completed comparison.
 
 ### 2. Collect and analyze calibration
 
