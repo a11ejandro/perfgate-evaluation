@@ -162,6 +162,44 @@ The tool refuses to create a held-out plan while those fields are unresolved.
 Do not inspect held-out outcomes while changing thresholds, workloads,
 injections, exclusions, or analysis rules.
 
+The prepared v1 design is documented in `HELD_OUT_VALIDATION.md`. Its local
+configuration files are `config/study-held-out.yml` and
+`config/simulations-held-out.yml`. Freeze it with:
+
+```bash
+bin/freeze_plan \
+  --stage held_out \
+  --config config/study-held-out.yml \
+  --output plans/perfgate-micropost-held-out-v1.json
+```
+
+### 5. Audit readiness before publishing or executing
+
+```bash
+bin/check_readiness \
+  --plan plans/perfgate-micropost-held-out-v1.json \
+  --archive PATH/TO/perfgate-micropost-calibration-v1.tar.gz \
+  --output readiness/perfgate-micropost-held-out-v1.json
+```
+
+A local `ready` result is necessary but not authorization to collect held-out
+data. First publish the immutable calibration release and push the frozen plan
+and checksum. The audit deliberately reports `execution_authorized: false` so
+preparation cannot silently start the confirmatory study.
+
+After collection and held-out simulation, evaluate the predeclared criteria:
+
+```bash
+bin/assess_acceptance \
+  --plan plans/perfgate-micropost-held-out-v1.json \
+  --application-summary derived/held-out-report/summary.json \
+  --simulation-summary simulation-results/held-out/summary.json \
+  --output derived/held-out-acceptance
+```
+
+Every criterion is reported. Failure does not trigger tuning or replacement of
+held-out observations; a changed design starts a new study version.
+
 ## What this first study can and cannot establish
 
 Repeated A/A comparisons can estimate false-FAIL, WARN, incomplete-evidence,

@@ -1,0 +1,100 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = {
+  repository: File.join(PerfgateEvaluation::ROOT, "..", "perfgate-micropost"),
+  results: File.join(PerfgateEvaluation::ROOT, "results")
+}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/check_readiness --plan PATH --archive PATH --output PATH [options]"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--archive PATH") { |value| options[:archive] = File.expand_path(value) }
+  parser.on("--output PATH") { |value| options[:output] = File.expand_path(value) }
+  parser.on("--repository PATH") { |value| options[:repository] = File.expand_path(value) }
+  parser.on("--results PATH") { |value| options[:results] = File.expand_path(value) }
+end.parse!
+
+%i[plan archive output].each { |key| abort "--#{key} is required" unless options[key] }
+abort "refusing to overwrite #{options[:output]}" if File.exist?(options[:output])
+
+plan_digest = PerfgateEvaluation.verify_sidecar!(options.fetch(:plan))
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+abort "readiness audit requires a held-out plan" unless plan.fetch("stage") == "held_out"
+
+checks = []
+check = lambda do |id, passed, detail|
+  checks << { "id" => id, "passed" => !!passed, "detail" => detail }
+end
+
+check.call("machinery_digest", PerfgateEvaluation.machinery_digest == plan.fetch("evaluation_machinery_digest"),
+           plan.fetch("evaluation_machinery_digest"))
+check.call("calibration_record_digest",
+           PerfgateEvaluation.sha256_file(File.join(PerfgateEvaluation::ROOT,
+                                                     plan.dig("calibration_artifact", "path"))) ==
+             plan.dig("calibration_artifact", "digest"),
+           plan.dig("calibration_artifact", "digest"))
+check.call("calibration_archive_digest",
+           PerfgateEvaluation.sha256_file(options.fetch(:archive)) ==
+             "sha256:#{plan.dig('calibration_artifact', 'record', 'archive_sha256')}",
+           plan.dig("calibration_artifact", "record", "archive_sha256"))
+check.call("simulation_configuration_digest",
+           PerfgateEvaluation.sha256_file(File.join(PerfgateEvaluation::ROOT, plan.dig("simulation", "path"))) ==
+             plan.dig("simulation", "digest"),
+           plan.dig("simulation", "digest"))
+
+subject_clean = PerfgateEvaluation.git(options.fetch(:repository), "status", "--porcelain", "--untracked-files=all").empty?
+check.call("subject_repository_clean", subject_clean, options.fetch(:repository))
+revisions = plan.fetch("trials").flat_map do |trial|
+  [trial.fetch("reference_revision"), trial.fetch("candidate_revision")]
+end.uniq
+missing_revisions = revisions.reject do |revision|
+  PerfgateEvaluation.capture_optional("git", "cat-file", "-e", "#{revision}^{commit}", chdir: options.fetch(:repository))
+end
+check.call("all_subject_revisions_resolve", missing_revisions.empty?, missing_revisions.join(", "))
+
+expected_trials = Integer(plan.dig("stage_configuration", "aa_repetitions")) +
+                  (plan.fetch("trials").map { |trial| trial.fetch("condition") }.uniq.length - 1) *
+                  Integer(plan.dig("stage_configuration", "injection_repetitions"))
+check.call("trial_count", plan.fetch("trials").length == expected_trials,
+           "#{plan.fetch('trials').length}/#{expected_trials}")
+check.call("all_trials_paired", plan.fetch("trials").group_by { |trial| trial.fetch("reversal_pair") }
+                                    .values.all? { |trials| trials.length == 2 },
+           "#{plan.fetch('trials').length / 2} preassigned pairs")
+
+result_root = File.join(options.fetch(:results), plan.fetch("study_id"), "held_out")
+preexisting = File.directory?(result_root) && !Dir.empty?(result_root)
+check.call("no_preexisting_held_out_results", !preexisting, result_root)
+
+relative_plan = options.fetch(:plan).delete_prefix("#{PerfgateEvaluation::ROOT}/")
+tracked = PerfgateEvaluation.capture_optional("git", "ls-files", "--error-unmatch", relative_plan,
+                                               chdir: PerfgateEvaluation::ROOT)
+unchanged_from_head = PerfgateEvaluation.capture_optional(
+  "git", "diff", "--quiet", "HEAD", "--", relative_plan, chdir: PerfgateEvaluation::ROOT
+)
+check.call("plan_committed_locally", !tracked.to_s.empty? && !unchanged_from_head.nil?, relative_plan)
+origin_contains_head = PerfgateEvaluation.capture_optional(
+  "git", "branch", "-r", "--contains", "HEAD", chdir: PerfgateEvaluation::ROOT
+).to_s.lines.any? { |line| line.strip == "origin/main" }
+
+report = {
+  "schema_version" => 1,
+  "study_id" => plan.fetch("study_id"),
+  "plan_digest" => plan_digest,
+  "generated_at" => Time.now.utc.iso8601,
+  "local_status" => checks.all? { |item| item.fetch("passed") } ? "ready" : "not_ready",
+  "checks" => checks,
+  "publication_gates" => {
+    "calibration_release_must_be_published_immutable" => true,
+    "frozen_plan_must_be_pushed_before_execution" => true,
+    "current_head_visible_on_origin_main" => origin_contains_head
+  },
+  "execution_authorized" => false,
+  "interpretation" => "A local ready result does not authorize execution. Publish the immutable calibration release and frozen plan first."
+}
+PerfgateEvaluation.write_json(options.fetch(:output), report)
+puts "local readiness: #{report.fetch('local_status')}"
+puts "execution authorized: false"
+puts "report: #{options.fetch(:output)}"

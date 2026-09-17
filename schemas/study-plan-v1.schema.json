@@ -24,6 +24,26 @@
     "reference_design": { "const": "historical_stored_baseline" },
     "estimator": { "const": "independent_nonparametric_bootstrap_median_difference" },
     "analysis": { "type": "object" },
+    "calibration_artifact": {
+      "type": "object",
+      "required": ["path", "digest", "record"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "record": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "simulation": {
+      "type": "object",
+      "required": ["path", "digest", "configuration"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "configuration": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
     "trials": {
       "type": "array",
       "minItems": 1,
@@ -42,5 +62,11 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "stage": { "const": "held_out" } } },
+      "then": { "required": ["calibration_artifact", "simulation"] }
+    }
+  ],
   "additionalProperties": true
 }

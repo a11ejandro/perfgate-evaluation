@@ -1,0 +1,176 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/evaluation_support"
+
+options = {}
+OptionParser.new do |parser|
+  parser.banner = "usage: bin/assess_acceptance --plan PATH --application-summary PATH --simulation-summary PATH --output DIRECTORY"
+  parser.on("--plan PATH") { |value| options[:plan] = File.expand_path(value) }
+  parser.on("--application-summary PATH") { |value| options[:application_summary] = File.expand_path(value) }
+  parser.on("--simulation-summary PATH") { |value| options[:simulation_summary] = File.expand_path(value) }
+  parser.on("--output PATH") { |value| options[:output] = File.expand_path(value) }
+end.parse!
+
+%i[plan application_summary simulation_summary output].each do |key|
+  abort "--#{key.to_s.tr('_', '-')} is required" unless options[key]
+end
+abort "refusing to overwrite nonempty output: #{options[:output]}" if
+  File.directory?(options[:output]) && !Dir.empty?(options[:output])
+
+plan_digest = PerfgateEvaluation.verify_sidecar!(options.fetch(:plan))
+plan = PerfgateEvaluation.read_json(options.fetch(:plan))
+abort "acceptance assessment requires a held-out plan" unless plan.fetch("stage") == "held_out"
+abort "assessment machinery differs from the frozen plan" unless
+  PerfgateEvaluation.machinery_digest == plan.fetch("evaluation_machinery_digest")
+
+application = PerfgateEvaluation.read_json(options.fetch(:application_summary))
+simulation = PerfgateEvaluation.read_json(options.fetch(:simulation_summary))
+abort "application summary belongs to another plan" unless application.fetch("plan_digest") == plan_digest
+abort "application summary is not held-out analysis" unless application.fetch("stage") == "held_out"
+abort "simulation summary is not held-out analysis" unless simulation.fetch("stage") == "held_out"
+abort "simulation configuration differs from the frozen plan" unless
+  simulation.fetch("simulation_configuration_digest") == plan.dig("simulation", "digest")
+abort "simulation used another Perfgate revision" unless
+  simulation.fetch("perfgate_revision") == plan.fetch("perfgate_revision")
+abort "simulation used another Perfgate runtime" unless
+  simulation.fetch("perfgate_runtime_source_digest") == plan.fetch("perfgate_runtime_source_digest")
+
+acceptance = plan.dig("stage_configuration", "acceptance")
+confidence = Float(plan.dig("analysis", "confidence_level"))
+checks = []
+add_check = lambda do |id:, observed:, comparator:, threshold:, detail:|
+  passed = comparator == "at_most" ? observed <= threshold : observed >= threshold
+  checks << {
+    "id" => id,
+    "observed" => observed,
+    "comparator" => comparator,
+    "threshold" => threshold,
+    "passed" => passed,
+    "detail" => detail
+  }
+end
+
+add_check.call(
+  id: "collection_completion_rate",
+  observed: Float(application.dig("collection", "completion", "proportion")),
+  comparator: "at_least",
+  threshold: Float(acceptance.fetch("minimum_collection_completion_rate")),
+  detail: "point proportion of planned comparisons collected as complete"
+)
+add_check.call(
+  id: "aa_false_fail_wilson_upper",
+  observed: Float(application.dig("aa", "false_fail", "upper")),
+  comparator: "at_most",
+  threshold: Float(acceptance.fetch("maximum_aa_false_fail_wilson_upper")),
+  detail: "two-sided #{(confidence * 100).round}% Wilson upper bound"
+)
+add_check.call(
+  id: "aa_metric_warn_wilson_upper",
+  observed: Float(application.dig("aa", "metric_outcome_distribution", "warn", "upper")),
+  comparator: "at_most",
+  threshold: Float(acceptance.fetch("maximum_aa_metric_warn_wilson_upper")),
+  detail: "metric decisions only; excludes compatibility reservations"
+)
+add_check.call(
+  id: "aa_incomplete_wilson_upper",
+  observed: Float(application.dig("aa", "incomplete", "upper")),
+  comparator: "at_most",
+  threshold: Float(acceptance.fetch("maximum_aa_incomplete_wilson_upper")),
+  detail: "INCONCLUSIVE plus INCOMPARABLE A/A comparisons"
+)
+add_check.call(
+  id: "rerun_reversal_wilson_upper",
+  observed: Float(application.dig("rerun_reversal", "upper")),
+  comparator: "at_most",
+  threshold: Float(acceptance.fetch("maximum_rerun_reversal_wilson_upper")),
+  detail: "preassigned consecutive disjoint pairs"
+)
+add_check.call(
+  id: "median_comparison_seconds",
+  observed: Float(application.dig("runtime", "median_comparison_seconds")),
+  comparator: "at_most",
+  threshold: Float(acceptance.fetch("maximum_median_comparison_seconds")),
+  detail: "captured arm time; excludes CI queue and setup"
+)
+
+application.fetch("condition_outcome_distributions").sort.each do |condition, distribution|
+  next if condition == "aa"
+  add_check.call(
+    id: "fixed_injection_fail_wilson_lower:#{condition}",
+    observed: Float(distribution.dig("fail", "lower")),
+    comparator: "at_least",
+    threshold: Float(acceptance.fetch("minimum_fixed_injection_fail_wilson_lower")),
+    detail: "condition-specific detection; not power at an MEI"
+  )
+end
+
+simulation.fetch("groups").each do |group|
+  add_check.call(
+    id: "simulation_coverage_wilson_lower:#{group.fetch('scenario')}:#{group.fetch('effect_percent')}",
+    observed: Float(group.dig("absolute_interval_coverage", "lower")),
+    comparator: "at_least",
+    threshold: Float(acceptance.fetch("minimum_simulation_coverage_wilson_lower")),
+    detail: "absolute interval coverage under the declared generator"
+  )
+end
+
+null_effect = Float(plan.dig("simulation", "configuration", "validation", "null_effect_percent"))
+simulation.fetch("groups").select { |group| Float(group.fetch("effect_percent")) == null_effect }.each do |group|
+  add_check.call(
+    id: "simulation_null_fail_wilson_upper:#{group.fetch('scenario')}",
+    observed: Float(group.dig("decisions", "fail", "upper")),
+    comparator: "at_most",
+    threshold: Float(acceptance.fetch("maximum_simulation_null_fail_wilson_upper")),
+    detail: "model-specific null false-FAIL bound"
+  )
+end
+
+actionable = plan.dig("simulation", "configuration", "validation", "actionable_effect_by_scenario")
+actionable.each do |scenario, effect|
+  group = simulation.fetch("groups").find do |item|
+    item.fetch("scenario") == scenario && Float(item.fetch("effect_percent")) == Float(effect)
+  end
+  abort "missing actionable simulation group #{scenario} at #{effect}%" unless group
+  count = group.dig("decisions", "warn", "count") + group.dig("decisions", "fail", "count")
+  lower, = PerfgateEvaluation.wilson_interval(count, group.fetch("replicates"), confidence)
+  add_check.call(
+    id: "simulation_actionable_warn_or_fail_wilson_lower:#{scenario}",
+    observed: lower,
+    comparator: "at_least",
+    threshold: Float(acceptance.fetch("minimum_simulation_actionable_wilson_lower")),
+    detail: "WARN or FAIL at the predeclared actionable effect of #{effect}%"
+  )
+end
+
+report = {
+  "schema_version" => 1,
+  "study_id" => plan.fetch("study_id"),
+  "plan_digest" => plan_digest,
+  "generated_at" => Time.now.utc.iso8601,
+  "decision" => checks.all? { |check| check.fetch("passed") } ? "criteria_satisfied" : "criteria_not_satisfied",
+  "checks" => checks,
+  "report_only" => plan.dig("stage_configuration", "report_only"),
+  "scope_exclusions" => plan.dig("stage_configuration", "scope_exclusions"),
+  "interpretation" => "Criteria apply only to the frozen held-out scope; satisfying them does not validate direct merge blocking or excluded claims."
+}
+
+FileUtils.mkdir_p(options.fetch(:output))
+PerfgateEvaluation.write_json(File.join(options.fetch(:output), "acceptance.json"), report)
+lines = [
+  "# Held-out acceptance assessment: #{plan.fetch('study_id')}", "",
+  "Decision: **#{report.fetch('decision').tr('_', ' ')}**", "",
+  "| Criterion | Observed | Requirement | Result |", "|---|---:|---:|---|"
+]
+checks.each do |check|
+  operator = check.fetch("comparator") == "at_most" ? "≤" : "≥"
+  lines << format("| `%s` | %.6f | %s %.6f | %s |", check.fetch("id"), check.fetch("observed"),
+                  operator, check.fetch("threshold"), check.fetch("passed") ? "PASS" : "FAIL")
+end
+lines.concat(["", report.fetch("interpretation"), "", "Scope exclusions: " +
+  report.fetch("scope_exclusions").map { |item| "`#{item}`" }.join(", ") + "."])
+File.write(File.join(options.fetch(:output), "acceptance.md"), "#{lines.join("\n")}\n")
+
+puts "acceptance decision: #{report.fetch('decision')}"
+puts "report: #{File.join(options.fetch(:output), 'acceptance.md')}"

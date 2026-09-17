@@ -1,0 +1,65 @@
+schema_version: 1
+
+study:
+  id: perfgate-micropost-held-out-v1
+  title: Perfgate Micropost held-out validation
+  status: held_out
+  subject_repository: ../perfgate-micropost
+  subject_repository_url: https://github.com/a11ejandro/perfgate-micropost.git
+  perfgate_repository: ../perfgate
+  reference_ref: main
+  perfgate_config: perfgate.yml
+  workload_sources:
+    - spec/perfgate/workloads_spec.rb
+    - spec/support/workload_fixtures.rb
+  conditions: config/conditions.yml
+  randomization_seed: 20261001
+  environment_class: ubuntu-24.04-postgresql-17-ruby-3.3.4
+  reference_design: historical_stored_baseline
+  estimator: independent_nonparametric_bootstrap_median_difference
+  evidence_outcomes: [pass, warn, fail, inconclusive, incomparable]
+
+calibration:
+  aa_repetitions: 30
+  injection_repetitions: 12
+  minimum_distinct_days: 3
+  minimum_worker_instances: 3
+
+held_out:
+  ready: true
+  calibration_artifact: preregistration/perfgate-micropost-calibration-v1.json
+  calibration_artifact_digest: sha256:c27eeae4bc7c33ef5114aaa289b407adeaf6620683fc77e3c5831b23a5b8a284
+  simulation_configuration: config/simulations-held-out.yml
+  simulation_configuration_digest: sha256:6387e7b1cb5f6cba6bfeda1210c68966ab443bf7a6571195f51f26bfc50821cc
+  aa_repetitions: 80
+  injection_repetitions: 20
+  minimum_distinct_days: 5
+  minimum_worker_instances: 50
+  acceptance:
+    minimum_collection_completion_rate: 0.98
+    maximum_aa_false_fail_wilson_upper: 0.05
+    maximum_aa_metric_warn_wilson_upper: 0.01
+    maximum_aa_incomplete_wilson_upper: 0.15
+    maximum_rerun_reversal_wilson_upper: 0.10
+    minimum_fixed_injection_fail_wilson_lower: 0.80
+    maximum_median_comparison_seconds: 60.0
+    minimum_simulation_coverage_wilson_lower: 0.99
+    maximum_simulation_null_fail_wilson_upper: 0.01
+    minimum_simulation_actionable_wilson_lower: 0.90
+  report_only:
+    - overall_aa_warn_rate
+    - compatibility_reservation_rate
+    - evidence_distribution_by_calendar_day
+  scope_exclusions:
+    - direct_merge_blocking
+    - cross_worker_variance_decomposition
+    - causal_attribution
+    - cross_application_generalization
+    - operational_benefit
+
+analysis:
+  study_rate_interval: wilson
+  confidence_level: 0.95
+  reversal_pairing: consecutive_disjoint_repetitions
+  count_policy_result_as_evidence: false
+  pool_calibration_with_held_out: false

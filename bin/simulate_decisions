@@ -159,6 +159,11 @@ groups = summary_groups.map do |(scenario, effect), records|
   percent_lower, percent_upper = PerfgateEvaluation.wilson_interval(percent_count, records.length, confidence_level)
   {
     "scenario" => scenario,
+    "metric" => configuration.dig("scenarios", scenario, "metric"),
+    "distribution" => configuration.dig("scenarios", scenario, "distribution"),
+    "coefficient_of_variation" => configuration.dig("scenarios", scenario, "coefficient_of_variation"),
+    "warning_percent" => configuration.dig("scenarios", scenario, "warning_percent"),
+    "failure_percent" => configuration.dig("scenarios", scenario, "failure_percent"),
     "effect_percent" => effect,
     "replicates" => records.length,
     "decisions" => decisions,
@@ -185,6 +190,10 @@ summary = {
   "perfgate_revision" => expected_revision,
   "perfgate_runtime_source_digest" => actual_runtime_digest,
   "replicates_per_scenario_effect" => Integer(replicates),
+  "sample_size" => sample_size,
+  "family_size" => family_size,
+  "confidence_level" => confidence_level,
+  "validation" => configuration.fetch("validation", {}),
   "interpretation" => "Known-effect simulation of the pinned decision procedure; not application, host, causal, or operational validation.",
   "groups" => groups
 }

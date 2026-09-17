@@ -1,6 +1,6 @@
 # Preregisterable evaluation protocol
 
-Status: **calibration protocol; no confirmatory results reported**
+Status: **calibration completed; held-out protocol prepared; no confirmatory results reported**
 
 ## Objective
 
@@ -50,10 +50,10 @@ change the protocol. They are excluded from calibration and held-out estimates.
 
 ### Calibration
 
-The initial configuration schedules 30 A/A comparisons and 12 comparisons for
-each of eight fixed injections. These counts are design starting points, not a
-claim of adequate precision. Calibration estimates determine whether more runs,
-different effect injections, or a different environment are required.
+The completed calibration scheduled 30 A/A comparisons and 12 comparisons for
+each of eight fixed injections. These counts were design starting points, not a
+claim of adequate precision. Its results informed a separate held-out plan but
+are not pooled with confirmatory estimates.
 
 Calibration may inform a separate held-out plan. Every change to workloads,
 data, MEIs, reference design, estimator, multiplicity rule, exclusions, or
@@ -61,11 +61,19 @@ environment creates a new configuration and study identifier.
 
 ### Held-out validation
 
-Held-out replication counts and acceptance bounds are deliberately unresolved
-in the calibration configuration. They must be selected from operational risk
-and calibration precision, recorded with the calibration artifact digest, and
-frozen before held-out outcomes are observed. The machinery rejects an
-unresolved held-out plan.
+The first held-out design is specified in `HELD_OUT_VALIDATION.md` and
+`config/study-held-out.yml`. It fixes 80 A/A comparisons, 20 comparisons for
+each of eight fixed injections, at least five UTC dates, at least 50 hosted
+worker identities, and explicit acceptance bounds. The frozen plan records the
+calibration-artifact and simulation-configuration digests. The machinery
+rejects an unresolved held-out plan.
+
+Overall WARN is reported but is not an acceptance criterion in this design.
+Perfgate's overall evidence state combines metric-derived warnings with
+informational compatibility reservations, so the held-out criterion instead
+uses the A/A metric-WARN rate. Cross-worker variance decomposition is excluded
+because the ephemeral-worker schedule does not replicate observations within
+identified workers. Direct merge blocking is also excluded.
 
 ## Outcomes
 
@@ -151,14 +159,17 @@ Calibration has no pass/fail acceptance threshold. Its purpose is to estimate
 variance, null behavior, sensitivity to the fixed corpus, duration, and the
 sample size needed for held-out evaluation.
 
-Before held-out validation, the author and workload owners must specify bounds
-for false FAIL, WARN, incomplete evidence, reversal, interval coverage under
-selected generators, detection at selected alternatives, worker instability,
-and compute time. A blocking recommendation is permitted only if the complete
-held-out artifact satisfies every predeclared criterion and exactly matches the
-workload set, reference design, estimator, MEIs, multiplicity rule, environment
-class, Perfgate revision, and policy version. Even then, the result supports
-only that calibrated scope.
+The prepared held-out configuration specifies bounds for false FAIL,
+metric-derived WARN, incomplete evidence, reversal, interval coverage under
+selected generators, detection at selected alternatives, fixed-injection
+detection, collection completeness, and captured comparison time. The complete
+criteria and their endpoint rules are in `HELD_OUT_VALIDATION.md` and are
+machine-readable in the frozen plan.
+
+This held-out study cannot support a blocking recommendation because it does
+not estimate a cross-worker variance component and retains the historical
+stored-baseline design. Even a result satisfying every criterion supports only
+the narrower frozen validation scope.
 
 Until that occurs, advisory results may motivate investigation but must not
 automatically block merges.

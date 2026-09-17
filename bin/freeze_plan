@@ -31,10 +31,11 @@ abort "Perfgate repository does not exist: #{perfgate_repository}" unless File.d
 
 stage_configuration = configuration.fetch(options[:stage])
 if options[:stage] == "held_out"
-  abort "held_out.ready must be true" unless stage_configuration["ready"] == true
+  PerfgateEvaluation.validate_held_out_configuration!(configuration)
   required = %w[
     calibration_artifact calibration_artifact_digest aa_repetitions
     injection_repetitions minimum_distinct_days minimum_worker_instances
+    simulation_configuration simulation_configuration_digest
   ]
   required += stage_configuration.fetch("acceptance").keys
   unresolved = required.select do |key|
@@ -46,6 +47,12 @@ if options[:stage] == "held_out"
   abort "calibration artifact is missing: #{artifact}" unless File.file?(artifact)
   actual = PerfgateEvaluation.sha256_file(artifact)
   abort "calibration artifact digest mismatch" unless actual == stage_configuration.fetch("calibration_artifact_digest")
+
+  simulation_path = File.expand_path(stage_configuration.fetch("simulation_configuration"), PerfgateEvaluation::ROOT)
+  abort "simulation configuration is missing: #{simulation_path}" unless File.file?(simulation_path)
+  simulation_digest = PerfgateEvaluation.sha256_file(simulation_path)
+  abort "simulation configuration digest mismatch" unless
+    simulation_digest == stage_configuration.fetch("simulation_configuration_digest")
 end
 
 conditions_path = File.expand_path(study.fetch("conditions"), PerfgateEvaluation::ROOT)
@@ -125,6 +132,20 @@ plan = {
   "conditions_digest" => PerfgateEvaluation.sha256_file(conditions_path),
   "trials" => trials
 }
+if options[:stage] == "held_out"
+  artifact_path = File.expand_path(stage_configuration.fetch("calibration_artifact"), PerfgateEvaluation::ROOT)
+  simulation_path = File.expand_path(stage_configuration.fetch("simulation_configuration"), PerfgateEvaluation::ROOT)
+  plan["calibration_artifact"] = {
+    "path" => stage_configuration.fetch("calibration_artifact"),
+    "digest" => stage_configuration.fetch("calibration_artifact_digest"),
+    "record" => PerfgateEvaluation.read_json(artifact_path)
+  }
+  plan["simulation"] = {
+    "path" => stage_configuration.fetch("simulation_configuration"),
+    "digest" => stage_configuration.fetch("simulation_configuration_digest"),
+    "configuration" => PerfgateEvaluation.read_yaml(simulation_path)
+  }
+end
 plan["plan_fingerprint"] = PerfgateEvaluation.sha256_string(PerfgateEvaluation.canonical_json(plan))
 
 PerfgateEvaluation.write_json(options[:output], plan)

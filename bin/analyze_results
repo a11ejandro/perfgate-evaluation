@@ -31,20 +31,25 @@ end
 confidence_level = Float(plan.dig("analysis", "confidence_level"))
 complete = trials.select { |row| row["collection_status"] == "complete" }
 aa = complete.select { |row| row["condition_kind"] == "null_control" }
+aa_metrics = metrics.select { |row| row["condition_kind"] == "null_control" }
 
-rate = lambda do |rows, outcome|
-  count = rows.count { |row| row["evidence_result"] == outcome }
-  lower, upper = PerfgateEvaluation.wilson_interval(count, rows.length, confidence_level)
+rate_from_count = lambda do |count, denominator, outcome|
+  lower, upper = PerfgateEvaluation.wilson_interval(count, denominator, confidence_level)
   {
     "outcome" => outcome,
     "count" => count,
-    "denominator" => rows.length,
-    "proportion" => rows.empty? ? nil : count.to_f / rows.length,
+    "denominator" => denominator,
+    "proportion" => denominator.zero? ? nil : count.to_f / denominator,
     "interval_method" => "wilson",
     "confidence_level" => confidence_level,
     "lower" => lower,
     "upper" => upper
   }
+end
+
+rate = lambda do |rows, outcome|
+  count = rows.count { |row| row["evidence_result"] == outcome }
+  rate_from_count.call(count, rows.length, outcome)
 end
 
 outcome_distributions = complete.group_by { |row| row["condition"] }.transform_values do |rows|
@@ -75,12 +80,24 @@ summary = {
   "planned_comparisons" => trials.length,
   "complete_comparisons" => complete.length,
   "collection_issues" => audit.fetch("issues"),
+  "collection" => {
+    "completion" => rate_from_count.call(complete.length, trials.length, "complete")
+  },
   "aa" => {
     "comparisons" => aa.length,
     "false_fail" => rate.call(aa, "fail"),
     "warn" => rate.call(aa, "warn"),
     "inconclusive" => rate.call(aa, "inconclusive"),
     "incomparable" => rate.call(aa, "incomparable"),
+    "incomplete" => rate_from_count.call(
+      aa.count { |row| %w[inconclusive incomparable].include?(row["evidence_result"]) },
+      aa.length,
+      "inconclusive_or_incomparable"
+    ),
+    "metric_outcome_distribution" => PerfgateEvaluation::OUTCOMES.to_h do |outcome|
+      count = aa_metrics.count { |row| row["metric_decision"] == outcome }
+      [outcome, rate_from_count.call(count, aa_metrics.length, outcome)]
+    end,
     "outcome_distribution" => PerfgateEvaluation::OUTCOMES.to_h { |outcome| [outcome, rate.call(aa, outcome)] }
   },
   "condition_outcome_distributions" => outcome_distributions,

@@ -42,4 +42,23 @@ abort "study plan contains duplicate trial IDs" unless trial_ids.uniq.length == 
 schedule = plan.fetch("trials").map { |trial| trial.fetch("schedule_index") }
 abort "study plan schedule indexes are not contiguous" unless schedule.sort == (1..schedule.length).to_a
 
+if plan.fetch("stage") == "held_out"
+  stage_configuration = plan.fetch("stage_configuration")
+  PerfgateEvaluation.validate_held_out_configuration!("held_out" => stage_configuration)
+  abort "calibration artifact digest differs between plan sections" unless
+    plan.dig("calibration_artifact", "digest") == stage_configuration.fetch("calibration_artifact_digest")
+  abort "simulation digest differs between plan sections" unless
+    plan.dig("simulation", "digest") == stage_configuration.fetch("simulation_configuration_digest")
+
+  null_conditions = plan.fetch("trials").count { |trial| trial.fetch("condition_kind") == "null_control" }
+  injected_conditions = plan.fetch("trials").group_by { |trial| trial.fetch("condition") }
+                            .reject { |_name, trials| trials.first.fetch("condition_kind") == "null_control" }
+  abort "held-out A/A trial count differs from the configuration" unless
+    null_conditions == Integer(stage_configuration.fetch("aa_repetitions"))
+  abort "held-out injection trial count differs from the configuration" unless
+    injected_conditions.values.all? do |trials|
+      trials.length == Integer(stage_configuration.fetch("injection_repetitions"))
+    end
+end
+
 puts "valid study plan: #{options[:plan]}"

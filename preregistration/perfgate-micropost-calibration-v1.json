@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "record_id": "perfgate-micropost-calibration-v1",
+  "status": "completed_descriptive_calibration",
+  "plan_digest": "sha256:1947cef44863cf1b32da5112df00ca0552ac1754061ab19d113e15a12998ccb9",
+  "archive_sha256": "304e5a192857fede15fec0c0b98a7cd0d89ff33524e35d187e92d4bdb75cd428",
+  "archive_release": "https://github.com/a11ejandro/perfgate-evaluation/releases/tag/perfgate-micropost-calibration-v1",
+  "evaluation_revision": "228c424981614027baa5b916af7002ab64016abf",
+  "perfgate_revision": "405dfb42265d96890302d7a719f384c050983ec5",
+  "subject_reference_revision": "538221f853c5f0b2ae36be14bcaf576947b457f9",
+  "environment_class": "ubuntu-24.04-postgresql-17-ruby-3.3.4",
+  "reference_design": "historical_stored_baseline",
+  "estimator": "independent_nonparametric_bootstrap_median_difference",
+  "complete_comparisons": 126,
+  "planned_comparisons": 126,
+  "aa": {
+    "comparisons": 30,
+    "false_fail_count": 0,
+    "false_fail_wilson_95_upper": 0.11351339317396876,
+    "overall_warn_count": 28,
+    "inconclusive_count": 2,
+    "metric_results": 600,
+    "metric_warn_count": 0,
+    "metric_fail_count": 0
+  },
+  "fixed_injections": {
+    "conditions": 8,
+    "comparisons": 96,
+    "fail_count": 96,
+    "effect_status": "fixed_source_changes_with_unknown_true_effects"
+  },
+  "rerun_reversal": {
+    "reversals": 2,
+    "valid_pairs": 63,
+    "wilson_95_lower": 0.008749527561580449,
+    "wilson_95_upper": 0.10856477046607432
+  },
+  "runtime": {
+    "median_comparison_seconds": 42.678323500000005,
+    "captured_total_seconds": 5350.269399,
+    "excludes_ci_setup_and_queue_time": true
+  },
+  "interpretation": [
+    "This record is calibration, not held-out validation.",
+    "The fixed-injection detection proportions are not formal power estimates.",
+    "The historical stored-baseline design does not prove causality.",
+    "The calibration does not justify direct merge blocking."
+  ]
+}

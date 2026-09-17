@@ -82,4 +82,25 @@ class EvaluationSupportTest < Minitest::Test
 
     assert_equal ["plan_digest"], mismatches
   end
+
+  def test_validates_complete_held_out_configuration
+    held_out = {
+      "ready" => true,
+      "calibration_artifact" => "calibration.json",
+      "calibration_artifact_digest" => "sha256:#{'a' * 64}",
+      "simulation_configuration" => "simulations.yml",
+      "simulation_configuration_digest" => "sha256:#{'b' * 64}",
+      "aa_repetitions" => 80,
+      "injection_repetitions" => 20,
+      "minimum_distinct_days" => 5,
+      "minimum_worker_instances" => 50,
+      "acceptance" => PerfgateEvaluation::HELD_OUT_ACCEPTANCE_KEYS.to_h do |key|
+        [key, key == "maximum_median_comparison_seconds" ? 60.0 : 0.5]
+      end,
+      "report_only" => ["overall_aa_warn_rate"],
+      "scope_exclusions" => ["direct_merge_blocking"]
+    }
+
+    assert_nil PerfgateEvaluation.validate_held_out_configuration!("held_out" => held_out)
+  end
 end

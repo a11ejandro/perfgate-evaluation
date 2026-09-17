@@ -13,6 +13,18 @@ module PerfgateEvaluation
   ROOT = File.expand_path("..", __dir__)
   OUTCOMES = %w[pass warn fail inconclusive incomparable].freeze
   IDENTIFIER = /\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
+  HELD_OUT_ACCEPTANCE_KEYS = %w[
+    minimum_collection_completion_rate
+    maximum_aa_false_fail_wilson_upper
+    maximum_aa_metric_warn_wilson_upper
+    maximum_aa_incomplete_wilson_upper
+    maximum_rerun_reversal_wilson_upper
+    minimum_fixed_injection_fail_wilson_lower
+    maximum_median_comparison_seconds
+    minimum_simulation_coverage_wilson_lower
+    maximum_simulation_null_fail_wilson_upper
+    minimum_simulation_actionable_wilson_lower
+  ].freeze
 
   module_function
 
@@ -240,6 +252,46 @@ module PerfgateEvaluation
     sorted = values.sort
     midpoint = sorted.length / 2
     sorted.length.odd? ? sorted[midpoint] : (sorted[midpoint - 1] + sorted[midpoint]) / 2.0
+  end
+
+  def validate_held_out_configuration!(configuration)
+    held_out = configuration.fetch("held_out")
+    abort "held_out.ready must be true" unless held_out["ready"] == true
+
+    %w[
+      calibration_artifact calibration_artifact_digest simulation_configuration
+      simulation_configuration_digest aa_repetitions injection_repetitions
+      minimum_distinct_days minimum_worker_instances acceptance report_only
+      scope_exclusions
+    ].each do |key|
+      abort "held-out configuration is missing #{key}" if held_out[key].nil?
+    end
+
+    acceptance = held_out.fetch("acceptance")
+    missing = HELD_OUT_ACCEPTANCE_KEYS - acceptance.keys
+    extra = acceptance.keys - HELD_OUT_ACCEPTANCE_KEYS
+    abort "held-out acceptance is missing: #{missing.join(', ')}" unless missing.empty?
+    abort "held-out acceptance has unsupported keys: #{extra.join(', ')}" unless extra.empty?
+
+    probability_keys = HELD_OUT_ACCEPTANCE_KEYS - ["maximum_median_comparison_seconds"]
+    probability_keys.each do |key|
+      value = Float(acceptance.fetch(key))
+      abort "#{key} must be between zero and one" unless value.between?(0.0, 1.0)
+    end
+    abort "maximum_median_comparison_seconds must be positive" unless
+      Float(acceptance.fetch("maximum_median_comparison_seconds")).positive?
+
+    %w[aa_repetitions injection_repetitions minimum_distinct_days minimum_worker_instances].each do |key|
+      abort "#{key} must be positive" unless Integer(held_out.fetch(key)).positive?
+    end
+    abort "replication counts must be even for preassigned reversal pairs" unless
+      Integer(held_out.fetch("aa_repetitions")).even? &&
+      Integer(held_out.fetch("injection_repetitions")).even?
+
+    abort "report_only must be a nonempty array" unless held_out.fetch("report_only").is_a?(Array) &&
+      !held_out.fetch("report_only").empty?
+    abort "scope_exclusions must include direct_merge_blocking" unless
+      held_out.fetch("scope_exclusions").include?("direct_merge_blocking")
   end
 
   def resolve_downloaded_artifact_path(recorded_path, arm_root:, category:)

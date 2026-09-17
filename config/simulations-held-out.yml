@@ -1,0 +1,47 @@
+schema_version: 1
+seed: 20261001
+calibration_replicates: 250
+held_out_replicates: 2000
+sample_size: 8
+family_size: 15
+confidence_level: 0.95
+
+# These generators and effect grids are frozen before held-out simulation.
+# They validate the implemented decision rule only under the declared models.
+validation:
+  null_effect_percent: 0
+  actionable_effect_by_scenario:
+    duration_lognormal_low_noise: 20
+    duration_lognormal_moderate_noise: 20
+    allocations_lognormal_low_noise: 40
+
+scenarios:
+  duration_lognormal_low_noise:
+    metric: duration
+    distribution: lognormal
+    baseline_median: 200000000
+    coefficient_of_variation: 0.05
+    warning_percent: 5
+    failure_percent: 10
+    minimum_absolute: 10000000
+    effect_percent: [-20, 0, 5, 10, 15, 20]
+
+  duration_lognormal_moderate_noise:
+    metric: duration
+    distribution: lognormal
+    baseline_median: 200000000
+    coefficient_of_variation: 0.15
+    warning_percent: 5
+    failure_percent: 10
+    minimum_absolute: 10000000
+    effect_percent: [-20, 0, 5, 10, 15, 20]
+
+  allocations_lognormal_low_noise:
+    metric: allocations
+    distribution: lognormal
+    baseline_median: 50000
+    coefficient_of_variation: 0.05
+    warning_percent: 10
+    failure_percent: 20
+    minimum_absolute: 0
+    effect_percent: [-20, 0, 10, 20, 30, 40]
