@@ -213,3 +213,10 @@ power at arbitrary application-level effect sizes from fixed injections,
 cross-application generality, or operational benefit to engineering teams.
 Reference-design comparisons also remain future work because Perfgate currently
 implements only the historical stored-baseline design.
+
+## License
+
+The evaluation software is licensed under Apache License 2.0; see `LICENSE`.
+The authored study data and documentation are licensed under Creative Commons
+Attribution 4.0 International (CC BY 4.0); see `LICENSE-DATA`. Bundled source
+snapshots and third-party material retain their own licenses.
