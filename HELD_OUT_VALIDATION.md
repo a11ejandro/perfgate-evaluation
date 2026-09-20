@@ -8,6 +8,12 @@ application, workload set, decision procedure, environment class, and
 historical stored-baseline design. It is not a validation of direct merge
 blocking, causal attribution, other applications, or other environments.
 
+The active pre-execution freeze is version 1.1. It supersedes the unexecuted v1
+freeze solely to reference the corrected, previously unpublished calibration
+package and to replace moving `main` refs with the same resolved commit.
+`preregistration/perfgate-micropost-held-out-v1.1-amendment.md` records the
+reason and verifies that trials and analytical commitments are unchanged.
+
 ## Step 1 — Lock the claim and analysis boundary
 
 The primary application claim is limited to the distribution of Perfgate's
