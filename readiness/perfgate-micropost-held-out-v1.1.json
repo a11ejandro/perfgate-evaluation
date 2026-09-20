@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "study_id": "perfgate-micropost-held-out-v1.1",
+  "plan_digest": "sha256:699f93f421955fcfaf654bff64774bc5dc91bdba1133e78e40d500741e72bfb0",
+  "generated_at": "2026-09-20T05:04:12Z",
+  "local_status": "ready",
+  "checks": [
+    {
+      "id": "machinery_digest",
+      "passed": true,
+      "detail": "sha256:c24b93482ee90918f61e8ac4cd57fe6731986229570db209cb39002e3e87f2f3"
+    },
+    {
+      "id": "calibration_record_digest",
+      "passed": true,
+      "detail": "sha256:348a64addbfcd6835922da3ac2f664df042a7ddec6ba518cf355098ee8c1e261"
+    },
+    {
+      "id": "calibration_archive_digest",
+      "passed": true,
+      "detail": "9fe7b797ba95075a740e71691b7e0dcd26b0f4bfcef867cd11fa468f4101c1f4"
+    },
+    {
+      "id": "simulation_configuration_digest",
+      "passed": true,
+      "detail": "sha256:6387e7b1cb5f6cba6bfeda1210c68966ab443bf7a6571195f51f26bfc50821cc"
+    },
+    {
+      "id": "subject_repository_clean",
+      "passed": true,
+      "detail": "/Users/alex/Code/baseline/evaluation/../perfgate-micropost"
+    },
+    {
+      "id": "all_subject_revisions_resolve",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "id": "trial_count",
+      "passed": true,
+      "detail": "240/240"
+    },
+    {
+      "id": "all_trials_paired",
+      "passed": true,
+      "detail": "120 preassigned pairs"
+    },
+    {
+      "id": "no_preexisting_held_out_results",
+      "passed": true,
+      "detail": "/Users/alex/Code/baseline/evaluation/results/perfgate-micropost-held-out-v1.1/held_out"
+    },
+    {
+      "id": "plan_committed_locally",
+      "passed": true,
+      "detail": "plans/perfgate-micropost-held-out-v1.1.json"
+    }
+  ],
+  "publication_gates": {
+    "calibration_release_must_be_published_immutable": true,
+    "frozen_plan_must_be_pushed_before_execution": true,
+    "current_head_visible_on_origin_main": false
+  },
+  "execution_authorized": false,
+  "interpretation": "A local ready result does not authorize execution. Publish the immutable calibration release and frozen plan first."
+}
